@@ -139,6 +139,19 @@ typedef struct mpv_event {
 	void *data;
 } mpv_event;
 
+typedef int64_t (*mpv_stream_cb_read_fn)(void *cookie, char *buf, uint64_t nbytes);
+typedef int64_t (*mpv_stream_cb_seek_fn)(void *cookie, int64_t offset);
+typedef int64_t (*mpv_stream_cb_size_fn)(void *cookie);
+typedef void (*mpv_stream_cb_close_fn)(void *cookie);
+typedef struct mpv_stream_cb_info {
+	void *cookie;
+	mpv_stream_cb_read_fn read_fn;
+	mpv_stream_cb_seek_fn seek_fn;
+	mpv_stream_cb_size_fn size_fn;
+	mpv_stream_cb_close_fn close_fn;
+} mpv_stream_cb_info;
+typedef int (*mpv_stream_cb_open_ro_fn)(void *user_data, char *uri, mpv_stream_cb_info *info);
+
 HINSTANCE dllhandle;
 typedef unsigned long (*def_mpv_client_api_version)();
 typedef const char * (*def_mpv_error_string)(int error);
@@ -178,6 +191,7 @@ typedef void (*def_mpv_set_wakeup_callback)(mpv_handle *ctx, void (*cb)(void *d)
 typedef void (*def_mpv_wait_async_requests)(mpv_handle *ctx);
 typedef int (*def_mpv_hook_add)(mpv_handle *ctx, uint64_t reply_userdata, const char *name, int priority);
 typedef int (*def_mpv_hook_continue)(mpv_handle *ctx, uint64_t id);
+typedef int (*def_mpv_stream_cb_add_ro)(mpv_handle *ctx, const char *protocol, void *user_data, mpv_stream_cb_open_ro_fn open_fn);
 
 def_mpv_client_api_version ptr_mpv_client_api_version;
 def_mpv_error_string ptr_mpv_error_string;
@@ -217,6 +231,7 @@ def_mpv_set_wakeup_callback ptr_mpv_set_wakeup_callback;
 def_mpv_wait_async_requests ptr_mpv_wait_async_requests;
 def_mpv_hook_add ptr_mpv_hook_add;
 def_mpv_hook_continue ptr_mpv_hook_continue;
+def_mpv_stream_cb_add_ro ptr_mpv_stream_cb_add_ro;
 
 class krmpv
 {
@@ -226,6 +241,43 @@ class krmpv
 		char * nstring = new char[len + 1];
 		ttbuf.ToNarrowStr(nstring, len);
 		return const_cast<const char*>(nstring);
+	}
+
+	static int64_t read_fn(void *cookie, char *buf, uint64_t nbytes)
+	{
+		IStream *ip = reinterpret_cast<IStream *>(cookie);
+		ULONG readbytes;
+		ip->Read(reinterpret_cast<void *>(buf), nbytes, &readbytes);
+		if (nbytes != readbytes) {
+			return -1;
+		}
+		return readbytes;
+	}
+
+	static int64_t seek_fn(void *cookie, int64_t offset)
+	{
+		IStream *ip = reinterpret_cast<IStream *>(cookie);
+		ULARGE_INTEGER newpos;
+		HRESULT res = ip->Seek({ offset }, STREAM_SEEK_SET, &newpos);
+		if (res != S_OK)
+			return MPV_ERROR_GENERIC;
+		return newpos.QuadPart;
+	}
+
+	static void close_fn(void *cookie)
+	{
+		IStream *ip = reinterpret_cast<IStream *>(cookie);
+		ip->Release();
+	}
+
+	static int open_fn(void *user_data, char *uri, mpv_stream_cb_info *info)
+	{
+		IStream *ip = reinterpret_cast<IStream *>(TVPCreateIStream(ttstr(uri), TJS_BS_READ));
+		info->cookie = reinterpret_cast<void *>(ip);
+		info->read_fn = krmpv::read_fn;
+		info->seek_fn = krmpv::seek_fn;
+		info->close_fn = krmpv::close_fn;
+		return ip ? 0 : MPV_ERROR_LOADING_FAILED;
 	}
 public:
 	static tjs_error TJS_INTF_METHOD mpv_client_api_version( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
@@ -497,6 +549,13 @@ public:
 		*result = ptr_mpv_hook_continue(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger());
 		return TJS_S_OK;
 	}
+
+	static tjs_error TJS_INTF_METHOD krmpv_stream_cb_add_ro( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
+	{
+		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
+		*result = ptr_mpv_stream_cb_add_ro(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]), nullptr, krmpv::open_fn);
+		return TJS_S_OK;
+	}
 };
 
 static void regcb()
@@ -541,6 +600,7 @@ static void regcb()
 	if (!(ptr_mpv_wait_async_requests = (def_mpv_wait_async_requests)GetProcAddress(dllhandle, "mpv_wait_async_requests"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_wait_async_requests in mpv-1.dll"));
 	if (!(ptr_mpv_hook_add = (def_mpv_hook_add)GetProcAddress(dllhandle, "mpv_hook_add"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_hook_add in mpv-1.dll"));
 	if (!(ptr_mpv_hook_continue = (def_mpv_hook_continue)GetProcAddress(dllhandle, "mpv_hook_continue"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_hook_continue in mpv-1.dll"));
+	if (!(ptr_mpv_stream_cb_add_ro = (def_mpv_stream_cb_add_ro)GetProcAddress(dllhandle, "mpv_stream_cb_add_ro"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_stream_cb_add_ro in mpv-1.dll"));
 	TVPExecuteExpression(
 		TJS_W("const ")
 		TJS_W("MPV_ERROR_SUCCESS = 0,")
@@ -651,6 +711,7 @@ static void unregcb() {
 	ptr_mpv_wait_async_requests = nullptr;
 	ptr_mpv_hook_add = nullptr;
 	ptr_mpv_hook_continue = nullptr;
+	ptr_mpv_stream_cb_add_ro = nullptr;
 }
 
 NCB_POST_REGIST_CALLBACK(unregcb);
@@ -695,4 +756,5 @@ NCB_REGISTER_CLASS(krmpv)
 	RawCallback("mpv_wait_async_requests", &Class::mpv_wait_async_requests, TJS_STATICMEMBER);
 	RawCallback("mpv_hook_add", &Class::mpv_hook_add, TJS_STATICMEMBER);
 	RawCallback("mpv_hook_continue", &Class::mpv_hook_continue, TJS_STATICMEMBER);
+	RawCallback("krmpv_stream_cb_add_ro", &Class::krmpv_stream_cb_add_ro, TJS_STATICMEMBER);
 };

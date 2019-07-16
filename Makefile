@@ -1,7 +1,7 @@
 
 CC = i686-w64-mingw32-gcc
 CXX = i686-w64-mingw32-g++
-GIT_TAG := $(shell git rev-parse --short HEAD)
+GIT_TAG := $(shell git describe --abbrev=0 --tags)
 CFLAGS += -O3 -march=ivybridge -flto
 CFLAGS += -Wall -Wno-unused-value -Wno-format -I. -I.. -I../ncbind -DGIT_TAG=L\"$(GIT_TAG)\" -DNDEBUG -DWIN32 -D_WIN32 -D_WINDOWS 
 CFLAGS += -D_USRDLL -DMINGW_HAS_SECURE_API -DUNICODE -D_UNICODE -DNO_STRICT 

@@ -388,11 +388,19 @@ public:
 	static tjs_error TJS_INTF_METHOD mpv_command( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
 	{
 		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-#if 0
-		*result = ptr_mpv_command(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]));
-#else
-		TVPThrowExceptionMessage(TJS_W("mpv_command is not implemented."));
-#endif
+		iTJSDispatch2 *strs = param[1]->AsObjectNoAddRef();
+		int count = TJSGetArrayElementCount(strs);
+		const char **cmd = new const char*[count];
+		cmd[count] = nullptr;
+		for (int i = 0; i < count; i += 1) {
+			tTJSVariant str;
+			if (!TJS_SUCCEEDED(strs->PropGetByNum(0, i, &str, strs))) {
+				TVPThrowExceptionMessage(TJS_W("Could not get element of array."));
+			}
+			cmd[i] = getNarrowString(&str);
+		}
+		*result = ptr_mpv_command(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), cmd);
+		delete cmd;
 		return TJS_S_OK;
 	}
 

@@ -1028,4 +1028,4 @@ static void unregcb() {
 	ptr_mpv_stream_cb_add_ro = nullptr;
 }
 
-NCB_POST_REGIST_CALLBACK(unregcb);
+NCB_POST_UNREGIST_CALLBACK(unregcb);

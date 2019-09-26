@@ -677,6 +677,312 @@ static void regcb()
 	);
 }
 
+NCB_REGISTER_CLASS(krmpv)
+{
+	RawCallback("mpv_client_api_version", &Class::mpv_client_api_version, TJS_STATICMEMBER);
+	RawCallback("mpv_error_string", &Class::mpv_error_string, TJS_STATICMEMBER);
+	RawCallback("mpv_free", &Class::mpv_free, TJS_STATICMEMBER);
+	RawCallback("mpv_client_name", &Class::mpv_client_name, TJS_STATICMEMBER);
+	RawCallback("mpv_create", &Class::mpv_create, TJS_STATICMEMBER);
+	RawCallback("mpv_initialize", &Class::mpv_initialize, TJS_STATICMEMBER);
+	RawCallback("mpv_destroy", &Class::mpv_destroy, TJS_STATICMEMBER);
+	RawCallback("mpv_terminate_destroy", &Class::mpv_terminate_destroy, TJS_STATICMEMBER);
+	RawCallback("mpv_create_client", &Class::mpv_create_client, TJS_STATICMEMBER);
+	RawCallback("mpv_create_weak_client", &Class::mpv_create_weak_client, TJS_STATICMEMBER);
+	RawCallback("mpv_load_config_file", &Class::mpv_load_config_file, TJS_STATICMEMBER);
+	RawCallback("mpv_get_time_us", &Class::mpv_get_time_us, TJS_STATICMEMBER);
+	RawCallback("mpv_free_node_contents", &Class::mpv_free_node_contents, TJS_STATICMEMBER);
+	RawCallback("mpv_set_option", &Class::mpv_set_option, TJS_STATICMEMBER);
+	RawCallback("mpv_set_option_string", &Class::mpv_set_option_string, TJS_STATICMEMBER);
+	RawCallback("mpv_command", &Class::mpv_command, TJS_STATICMEMBER);
+	RawCallback("mpv_command_node", &Class::mpv_command_node, TJS_STATICMEMBER);
+	RawCallback("mpv_command_string", &Class::mpv_command_string, TJS_STATICMEMBER);
+	RawCallback("mpv_command_node_async", &Class::mpv_command_node_async, TJS_STATICMEMBER);
+	RawCallback("mpv_abort_async_command", &Class::mpv_abort_async_command, TJS_STATICMEMBER);
+	RawCallback("mpv_set_property", &Class::mpv_set_property, TJS_STATICMEMBER);
+	RawCallback("mpv_set_property_string", &Class::mpv_set_property_string, TJS_STATICMEMBER);
+	RawCallback("mpv_set_property_async", &Class::mpv_set_property_async, TJS_STATICMEMBER);
+	RawCallback("mpv_get_property", &Class::mpv_get_property, TJS_STATICMEMBER);
+	RawCallback("mpv_get_property_string", &Class::mpv_get_property_string, TJS_STATICMEMBER);
+	RawCallback("mpv_get_property_osd_string", &Class::mpv_get_property_osd_string, TJS_STATICMEMBER);
+	RawCallback("mpv_get_property_async", &Class::mpv_get_property_async, TJS_STATICMEMBER);
+	RawCallback("mpv_observe_property", &Class::mpv_observe_property, TJS_STATICMEMBER);
+	RawCallback("mpv_unobserve_property", &Class::mpv_unobserve_property, TJS_STATICMEMBER);
+	RawCallback("mpv_event_name", &Class::mpv_event_name, TJS_STATICMEMBER);
+	RawCallback("mpv_request_event", &Class::mpv_request_event, TJS_STATICMEMBER);
+	RawCallback("mpv_request_log_messages", &Class::mpv_request_log_messages, TJS_STATICMEMBER);
+	RawCallback("mpv_wait_event", &Class::mpv_wait_event, TJS_STATICMEMBER);
+	RawCallback("mpv_wakeup", &Class::mpv_wakeup, TJS_STATICMEMBER);
+	RawCallback("mpv_set_wakeup_callback", &Class::mpv_set_wakeup_callback, TJS_STATICMEMBER);
+	RawCallback("mpv_wait_async_requests", &Class::mpv_wait_async_requests, TJS_STATICMEMBER);
+	RawCallback("mpv_hook_add", &Class::mpv_hook_add, TJS_STATICMEMBER);
+	RawCallback("mpv_hook_continue", &Class::mpv_hook_continue, TJS_STATICMEMBER);
+	RawCallback("krmpv_stream_cb_add_ro", &Class::krmpv_stream_cb_add_ro, TJS_STATICMEMBER);
+};
+
+class VideoOverlayMpv
+{
+public:
+	void open() const {TVPThrowExceptionMessage(TJS_W("krmpv: open is not implemented"));}
+
+	void play() const {TVPThrowExceptionMessage(TJS_W("krmpv: play is not implemented"));}
+
+	void stop() const {TVPThrowExceptionMessage(TJS_W("krmpv: stop is not implemented"));}
+
+	void close() const {TVPThrowExceptionMessage(TJS_W("krmpv: close is not implemented"));}
+
+	void setPos() const {TVPThrowExceptionMessage(TJS_W("krmpv: setPos is not implemented"));}
+
+	void setSize() const {TVPThrowExceptionMessage(TJS_W("krmpv: setSize is not implemented"));}
+
+	void setBounds() const {TVPThrowExceptionMessage(TJS_W("krmpv: setBounds is not implemented"));}
+
+	void pause() const {TVPThrowExceptionMessage(TJS_W("krmpv: pause is not implemented"));}
+
+	void rewind() const {TVPThrowExceptionMessage(TJS_W("krmpv: rewind is not implemented"));}
+
+	void prepare() const {TVPThrowExceptionMessage(TJS_W("krmpv: prepare is not implemented"));}
+
+	void setSegmentLoop() const {TVPThrowExceptionMessage(TJS_W("krmpv: setSegmentLoop is not implemented"));}
+
+	void cancelSegmentLoop() const {TVPThrowExceptionMessage(TJS_W("krmpv: cancelSegmentLoop is not implemented"));}
+
+	void setPeriodEvent() const {TVPThrowExceptionMessage(TJS_W("krmpv: setPeriodEvent is not implemented"));}
+
+	void cancelPeriodEvent() const {TVPThrowExceptionMessage(TJS_W("krmpv: cancelPeriodEvent is not implemented"));}
+
+	void selectAudioStream() const {TVPThrowExceptionMessage(TJS_W("krmpv: selectAudioStream is not implemented"));}
+
+	void setMixingLayer() const {TVPThrowExceptionMessage(TJS_W("krmpv: setMixingLayer is not implemented"));}
+
+	void resetMixingLayer() const {TVPThrowExceptionMessage(TJS_W("krmpv: resetMixingLayer is not implemented"));}
+
+	void onStatusChanged() const {TVPThrowExceptionMessage(TJS_W("krmpv: onStatusChanged is not implemented"));}
+
+	void onCallbackCommand() const {TVPThrowExceptionMessage(TJS_W("krmpv: onCallbackCommand is not implemented"));}
+
+	void onPeriod() const {TVPThrowExceptionMessage(TJS_W("krmpv: onPeriod is not implemented"));}
+
+	void onFrameUpdate() const {TVPThrowExceptionMessage(TJS_W("krmpv: onFrameUpdate is not implemented"));}
+
+	int position_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: position_get is not implemented")); return 0;}
+	void position_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: position_set is not implemented"));}
+
+	int left_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: left_get is not implemented")); return 0;}
+	void left_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: left_set is not implemented"));}
+
+	int top_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: top_get is not implemented")); return 0;}
+	void top_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: top_set is not implemented"));}
+
+	int width_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: width_get is not implemented")); return 0;}
+	void width_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: width_set is not implemented"));}
+
+	int height_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: height_get is not implemented")); return 0;}
+	void height_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: height_set is not implemented"));}
+
+	int originalWidth_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: originalWidth_get is not implemented")); return 0;}
+	void originalWidth_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: originalWidth_set is not implemented"));}
+
+	int originalHeight_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: originalHeight_get is not implemented")); return 0;}
+	void originalHeight_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: originalHeight_set is not implemented"));}
+
+	int visible_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: visible_get is not implemented")); return 0;}
+	void visible_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: visible_set is not implemented"));}
+
+	int loop_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: loop_get is not implemented")); return 0;}
+	void loop_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: loop_set is not implemented"));}
+
+	int frame_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: frame_get is not implemented")); return 0;}
+	void frame_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: frame_set is not implemented"));}
+
+	int fps_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: fps_get is not implemented")); return 0;}
+	void fps_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: fps_set is not implemented"));}
+
+	int numberOfFrame_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: numberOfFrame_get is not implemented")); return 0;}
+	void numberOfFrame_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: numberOfFrame_set is not implemented"));}
+
+	int totalTime_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: totalTime_get is not implemented")); return 0;}
+	void totalTime_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: totalTime_set is not implemented"));}
+
+	int layer1_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: layer1_get is not implemented")); return 0;}
+	void layer1_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: layer1_set is not implemented"));}
+
+	int layer2_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: layer2_get is not implemented")); return 0;}
+	void layer2_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: layer2_set is not implemented"));}
+
+	int mode_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: mode_get is not implemented")); return 0;}
+	void mode_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: mode_set is not implemented"));}
+
+	int playRate_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: playRate_get is not implemented")); return 0;}
+	void playRate_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: playRate_set is not implemented"));}
+
+	int segmentLoopStartFrame_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: segmentLoopStartFrame_get is not implemented")); return 0;}
+	void segmentLoopStartFrame_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: segmentLoopStartFrame_set is not implemented"));}
+
+	int segmentLoopEndFrame_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: segmentLoopEndFrame_get is not implemented")); return 0;}
+	void segmentLoopEndFrame_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: segmentLoopEndFrame_set is not implemented"));}
+
+	int periodEventFrame_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: periodEventFrame_get is not implemented")); return 0;}
+	void periodEventFrame_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: periodEventFrame_set is not implemented"));}
+
+	int audioBalance_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: audioBalance_get is not implemented")); return 0;}
+	void audioBalance_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: audioBalance_set is not implemented"));}
+
+	int audioVolume_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: audioVolume_get is not implemented")); return 0;}
+	void audioVolume_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: audioVolume_set is not implemented"));}
+
+	int numberOfAudioStream_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: numberOfAudioStream_get is not implemented")); return 0;}
+	void numberOfAudioStream_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: numberOfAudioStream_set is not implemented"));}
+
+	int enabledAudioStream_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: enabledAudioStream_get is not implemented")); return 0;}
+	void enabledAudioStream_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: enabledAudioStream_set is not implemented"));}
+
+	int numberOfVideoStream_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: numberOfVideoStream_get is not implemented")); return 0;}
+	void numberOfVideoStream_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: numberOfVideoStream_set is not implemented"));}
+
+	int enabledVideoStream_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: enabledVideoStream_get is not implemented")); return 0;}
+	void enabledVideoStream_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: enabledVideoStream_set is not implemented"));}
+
+	int mixingMovieAlpha_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: mixingMovieAlpha_get is not implemented")); return 0;}
+	void mixingMovieAlpha_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: mixingMovieAlpha_set is not implemented"));}
+
+	int mixingMovieBGColor_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: mixingMovieBGColor_get is not implemented")); return 0;}
+	void mixingMovieBGColor_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: mixingMovieBGColor_set is not implemented"));}
+
+	int contrastRangeMin_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastRangeMin_get is not implemented")); return 0;}
+	void contrastRangeMin_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastRangeMin_set is not implemented"));}
+
+	int contrastRangeMax_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastRangeMax_get is not implemented")); return 0;}
+	void contrastRangeMax_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastRangeMax_set is not implemented"));}
+
+	int contrastDefaultValue_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastDefaultValue_get is not implemented")); return 0;}
+	void contrastDefaultValue_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastDefaultValue_set is not implemented"));}
+
+	int contrastStepSize_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastStepSize_get is not implemented")); return 0;}
+	void contrastStepSize_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: contrastStepSize_set is not implemented"));}
+
+	int contrast_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: contrast_get is not implemented")); return 0;}
+	void contrast_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: contrast_set is not implemented"));}
+
+	int brightnessRangeMin_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessRangeMin_get is not implemented")); return 0;}
+	void brightnessRangeMin_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessRangeMin_set is not implemented"));}
+
+	int brightnessRangeMax_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessRangeMax_get is not implemented")); return 0;}
+	void brightnessRangeMax_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessRangeMax_set is not implemented"));}
+
+	int brightnessDefaultValue_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessDefaultValue_get is not implemented")); return 0;}
+	void brightnessDefaultValue_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessDefaultValue_set is not implemented"));}
+
+	int brightnessStepSize_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessStepSize_get is not implemented")); return 0;}
+	void brightnessStepSize_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: brightnessStepSize_set is not implemented"));}
+
+	int brightness_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: brightness_get is not implemented")); return 0;}
+	void brightness_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: brightness_set is not implemented"));}
+
+	int hueRangeMin_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: hueRangeMin_get is not implemented")); return 0;}
+	void hueRangeMin_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: hueRangeMin_set is not implemented"));}
+
+	int hueRangeMax_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: hueRangeMax_get is not implemented")); return 0;}
+	void hueRangeMax_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: hueRangeMax_set is not implemented"));}
+
+	int hueDefaultValue_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: hueDefaultValue_get is not implemented")); return 0;}
+	void hueDefaultValue_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: hueDefaultValue_set is not implemented"));}
+
+	int hueStepSize_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: hueStepSize_get is not implemented")); return 0;}
+	void hueStepSize_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: hueStepSize_set is not implemented"));}
+
+	int hue_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: hue_get is not implemented")); return 0;}
+	void hue_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: hue_set is not implemented"));}
+
+	int saturationRangeMin_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationRangeMin_get is not implemented")); return 0;}
+	void saturationRangeMin_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationRangeMin_set is not implemented"));}
+
+	int saturationRangeMax_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationRangeMax_get is not implemented")); return 0;}
+	void saturationRangeMax_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationRangeMax_set is not implemented"));}
+
+	int saturationDefaultValue_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationDefaultValue_get is not implemented")); return 0;}
+	void saturationDefaultValue_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationDefaultValue_set is not implemented"));}
+
+	int saturationStepSize_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationStepSize_get is not implemented")); return 0;}
+	void saturationStepSize_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: saturationStepSize_set is not implemented"));}
+
+	int saturation_get() const {TVPThrowExceptionMessage(TJS_W("krmpv: saturation_get is not implemented")); return 0;}
+	void saturation_set(int x) const {TVPThrowExceptionMessage(TJS_W("krmpv: saturation_set is not implemented"));}
+};
+
+NCB_ATTACH_CLASS(VideoOverlayMpv, VideoOverlay)
+{
+	Method("open", &Class::open);
+	Method("play", &Class::play);
+	Method("stop", &Class::stop);
+	Method("close", &Class::close);
+	Method("setPos", &Class::setPos);
+	Method("setSize", &Class::setSize);
+	Method("setBounds", &Class::setBounds);
+	Method("pause", &Class::pause);
+	Method("rewind", &Class::rewind);
+	Method("prepare", &Class::prepare);
+	Method("setSegmentLoop", &Class::setSegmentLoop);
+	Method("cancelSegmentLoop", &Class::cancelSegmentLoop);
+	Method("setPeriodEvent", &Class::setPeriodEvent);
+	Method("cancelPeriodEvent", &Class::cancelPeriodEvent);
+	Method("selectAudioStream", &Class::selectAudioStream);
+	Method("setMixingLayer", &Class::setMixingLayer);
+	Method("resetMixingLayer", &Class::resetMixingLayer);
+	Method("onStatusChanged", &Class::onStatusChanged);
+	Method("onCallbackCommand", &Class::onCallbackCommand);
+	Method("onPeriod", &Class::onPeriod);
+	Method("onFrameUpdate", &Class::onFrameUpdate);
+	Property("position", &Class::position_get, &Class::position_set);
+	Property("left", &Class::left_get, &Class::left_set);
+	Property("top", &Class::top_get, &Class::top_set);
+	Property("width", &Class::width_get, &Class::width_set);
+	Property("height", &Class::height_get, &Class::height_set);
+	Property("originalWidth", &Class::originalWidth_get, &Class::originalWidth_set);
+	Property("originalHeight", &Class::originalHeight_get, &Class::originalHeight_set);
+	Property("visible", &Class::visible_get, &Class::visible_set);
+	Property("loop", &Class::loop_get, &Class::loop_set);
+	Property("frame", &Class::frame_get, &Class::frame_set);
+	Property("fps", &Class::fps_get, &Class::fps_set);
+	Property("numberOfFrame", &Class::numberOfFrame_get, &Class::numberOfFrame_set);
+	Property("totalTime", &Class::totalTime_get, &Class::totalTime_set);
+	Property("layer1", &Class::layer1_get, &Class::layer1_set);
+	Property("layer2", &Class::layer2_get, &Class::layer2_set);
+	Property("mode", &Class::mode_get, &Class::mode_set);
+	Property("playRate", &Class::playRate_get, &Class::playRate_set);
+	Property("segmentLoopStartFrame", &Class::segmentLoopStartFrame_get, &Class::segmentLoopStartFrame_set);
+	Property("segmentLoopEndFrame", &Class::segmentLoopEndFrame_get, &Class::segmentLoopEndFrame_set);
+	Property("periodEventFrame", &Class::periodEventFrame_get, &Class::periodEventFrame_set);
+	Property("audioBalance", &Class::audioBalance_get, &Class::audioBalance_set);
+	Property("audioVolume", &Class::audioVolume_get, &Class::audioVolume_set);
+	Property("numberOfAudioStream", &Class::numberOfAudioStream_get, &Class::numberOfAudioStream_set);
+	Property("enabledAudioStream", &Class::enabledAudioStream_get, &Class::enabledAudioStream_set);
+	Property("numberOfVideoStream", &Class::numberOfVideoStream_get, &Class::numberOfVideoStream_set);
+	Property("enabledVideoStream", &Class::enabledVideoStream_get, &Class::enabledVideoStream_set);
+	Property("mixingMovieAlpha", &Class::mixingMovieAlpha_get, &Class::mixingMovieAlpha_set);
+	Property("mixingMovieBGColor", &Class::mixingMovieBGColor_get, &Class::mixingMovieBGColor_set);
+	Property("contrastRangeMin", &Class::contrastRangeMin_get, &Class::contrastRangeMin_set);
+	Property("contrastRangeMax", &Class::contrastRangeMax_get, &Class::contrastRangeMax_set);
+	Property("contrastDefaultValue", &Class::contrastDefaultValue_get, &Class::contrastDefaultValue_set);
+	Property("contrastStepSize", &Class::contrastStepSize_get, &Class::contrastStepSize_set);
+	Property("contrast", &Class::contrast_get, &Class::contrast_set);
+	Property("brightnessRangeMin", &Class::brightnessRangeMin_get, &Class::brightnessRangeMin_set);
+	Property("brightnessRangeMax", &Class::brightnessRangeMax_get, &Class::brightnessRangeMax_set);
+	Property("brightnessDefaultValue", &Class::brightnessDefaultValue_get, &Class::brightnessDefaultValue_set);
+	Property("brightnessStepSize", &Class::brightnessStepSize_get, &Class::brightnessStepSize_set);
+	Property("brightness", &Class::brightness_get, &Class::brightness_set);
+	Property("hueRangeMin", &Class::hueRangeMin_get, &Class::hueRangeMin_set);
+	Property("hueRangeMax", &Class::hueRangeMax_get, &Class::hueRangeMax_set);
+	Property("hueDefaultValue", &Class::hueDefaultValue_get, &Class::hueDefaultValue_set);
+	Property("hueStepSize", &Class::hueStepSize_get, &Class::hueStepSize_set);
+	Property("hue", &Class::hue_get, &Class::hue_set);
+	Property("saturationRangeMin", &Class::saturationRangeMin_get, &Class::saturationRangeMin_set);
+	Property("saturationRangeMax", &Class::saturationRangeMax_get, &Class::saturationRangeMax_set);
+	Property("saturationDefaultValue", &Class::saturationDefaultValue_get, &Class::saturationDefaultValue_set);
+	Property("saturationStepSize", &Class::saturationStepSize_get, &Class::saturationStepSize_set);
+	Property("saturation", &Class::saturation_get, &Class::saturation_set);
+};
+
 NCB_PRE_REGIST_CALLBACK(regcb);
 
 static void unregcb() {
@@ -723,46 +1029,3 @@ static void unregcb() {
 }
 
 NCB_POST_REGIST_CALLBACK(unregcb);
-
-NCB_REGISTER_CLASS(krmpv)
-{
-	RawCallback("mpv_client_api_version", &Class::mpv_client_api_version, TJS_STATICMEMBER);
-	RawCallback("mpv_error_string", &Class::mpv_error_string, TJS_STATICMEMBER);
-	RawCallback("mpv_free", &Class::mpv_free, TJS_STATICMEMBER);
-	RawCallback("mpv_client_name", &Class::mpv_client_name, TJS_STATICMEMBER);
-	RawCallback("mpv_create", &Class::mpv_create, TJS_STATICMEMBER);
-	RawCallback("mpv_initialize", &Class::mpv_initialize, TJS_STATICMEMBER);
-	RawCallback("mpv_destroy", &Class::mpv_destroy, TJS_STATICMEMBER);
-	RawCallback("mpv_terminate_destroy", &Class::mpv_terminate_destroy, TJS_STATICMEMBER);
-	RawCallback("mpv_create_client", &Class::mpv_create_client, TJS_STATICMEMBER);
-	RawCallback("mpv_create_weak_client", &Class::mpv_create_weak_client, TJS_STATICMEMBER);
-	RawCallback("mpv_load_config_file", &Class::mpv_load_config_file, TJS_STATICMEMBER);
-	RawCallback("mpv_get_time_us", &Class::mpv_get_time_us, TJS_STATICMEMBER);
-	RawCallback("mpv_free_node_contents", &Class::mpv_free_node_contents, TJS_STATICMEMBER);
-	RawCallback("mpv_set_option", &Class::mpv_set_option, TJS_STATICMEMBER);
-	RawCallback("mpv_set_option_string", &Class::mpv_set_option_string, TJS_STATICMEMBER);
-	RawCallback("mpv_command", &Class::mpv_command, TJS_STATICMEMBER);
-	RawCallback("mpv_command_node", &Class::mpv_command_node, TJS_STATICMEMBER);
-	RawCallback("mpv_command_string", &Class::mpv_command_string, TJS_STATICMEMBER);
-	RawCallback("mpv_command_node_async", &Class::mpv_command_node_async, TJS_STATICMEMBER);
-	RawCallback("mpv_abort_async_command", &Class::mpv_abort_async_command, TJS_STATICMEMBER);
-	RawCallback("mpv_set_property", &Class::mpv_set_property, TJS_STATICMEMBER);
-	RawCallback("mpv_set_property_string", &Class::mpv_set_property_string, TJS_STATICMEMBER);
-	RawCallback("mpv_set_property_async", &Class::mpv_set_property_async, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property", &Class::mpv_get_property, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property_string", &Class::mpv_get_property_string, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property_osd_string", &Class::mpv_get_property_osd_string, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property_async", &Class::mpv_get_property_async, TJS_STATICMEMBER);
-	RawCallback("mpv_observe_property", &Class::mpv_observe_property, TJS_STATICMEMBER);
-	RawCallback("mpv_unobserve_property", &Class::mpv_unobserve_property, TJS_STATICMEMBER);
-	RawCallback("mpv_event_name", &Class::mpv_event_name, TJS_STATICMEMBER);
-	RawCallback("mpv_request_event", &Class::mpv_request_event, TJS_STATICMEMBER);
-	RawCallback("mpv_request_log_messages", &Class::mpv_request_log_messages, TJS_STATICMEMBER);
-	RawCallback("mpv_wait_event", &Class::mpv_wait_event, TJS_STATICMEMBER);
-	RawCallback("mpv_wakeup", &Class::mpv_wakeup, TJS_STATICMEMBER);
-	RawCallback("mpv_set_wakeup_callback", &Class::mpv_set_wakeup_callback, TJS_STATICMEMBER);
-	RawCallback("mpv_wait_async_requests", &Class::mpv_wait_async_requests, TJS_STATICMEMBER);
-	RawCallback("mpv_hook_add", &Class::mpv_hook_add, TJS_STATICMEMBER);
-	RawCallback("mpv_hook_continue", &Class::mpv_hook_continue, TJS_STATICMEMBER);
-	RawCallback("krmpv_stream_cb_add_ro", &Class::krmpv_stream_cb_add_ro, TJS_STATICMEMBER);
-};

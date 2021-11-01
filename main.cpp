@@ -1,4 +1,6 @@
 #include "ncbind/ncbind.hpp"
+#include "CharacterSet.h"
+#include <vector>
 
 typedef struct mpv_handle mpv_handle;
 
@@ -183,6 +185,7 @@ typedef int (*def_mpv_get_property_async)(mpv_handle *ctx, uint64_t reply_userda
 typedef int (*def_mpv_observe_property)(mpv_handle *mpv, uint64_t reply_userdata, const char *name, mpv_format format);
 typedef int (*def_mpv_unobserve_property)(mpv_handle *mpv, uint64_t registered_reply_userdata);
 typedef const char * (*def_mpv_event_name)(mpv_event_id event);
+typedef int (*def_mpv_event_to_node)(mpv_node *dst, mpv_event *src);
 typedef int (*def_mpv_request_event)(mpv_handle *ctx, mpv_event_id event, int enable);
 typedef int (*def_mpv_request_log_messages)(mpv_handle *ctx, const char *min_level);
 typedef mpv_event * (*def_mpv_wait_event)(mpv_handle *ctx, double timeout);
@@ -223,6 +226,7 @@ def_mpv_get_property_async ptr_mpv_get_property_async;
 def_mpv_observe_property ptr_mpv_observe_property;
 def_mpv_unobserve_property ptr_mpv_unobserve_property;
 def_mpv_event_name ptr_mpv_event_name;
+def_mpv_event_to_node ptr_mpv_event_to_node;
 def_mpv_request_event ptr_mpv_request_event;
 def_mpv_request_log_messages ptr_mpv_request_log_messages;
 def_mpv_wait_event ptr_mpv_wait_event;
@@ -233,16 +237,50 @@ def_mpv_hook_add ptr_mpv_hook_add;
 def_mpv_hook_continue ptr_mpv_hook_continue;
 def_mpv_stream_cb_add_ro ptr_mpv_stream_cb_add_ro;
 
-class krmpv
-{
-	static const char *getNarrowString(tTJSVariant * str) {
-		ttstr ttbuf(str->AsStringNoAddRef());
-		tjs_int len = ttbuf.GetNarrowStrLen();
-		char * nstring = new char[len + 1];
-		ttbuf.ToNarrowStr(nstring, len);
-		return const_cast<const char*>(nstring);
-	}
+#define mpv_client_api_version ptr_mpv_client_api_version
+#define mpv_error_string ptr_mpv_error_string
+#define mpv_free ptr_mpv_free
+#define mpv_client_name ptr_mpv_client_name
+#define mpv_create ptr_mpv_create
+#define mpv_initialize ptr_mpv_initialize
+#define mpv_destroy ptr_mpv_destroy
+#define mpv_terminate_destroy ptr_mpv_terminate_destroy
+#define mpv_create_client ptr_mpv_create_client
+#define mpv_create_weak_client ptr_mpv_create_weak_client
+#define mpv_load_config_file ptr_mpv_load_config_file
+#define mpv_get_time_us ptr_mpv_get_time_us
+#define mpv_free_node_contents ptr_mpv_free_node_contents
+#define mpv_set_option ptr_mpv_set_option
+#define mpv_set_option_string ptr_mpv_set_option_string
+#define mpv_command ptr_mpv_command
+#define mpv_command_node ptr_mpv_command_node
+#define mpv_command_string ptr_mpv_command_string
+#define mpv_command_node_async ptr_mpv_command_node_async
+#define mpv_abort_async_command ptr_mpv_abort_async_command
+#define mpv_set_property ptr_mpv_set_property
+#define mpv_set_property_string ptr_mpv_set_property_string
+#define mpv_set_property_async ptr_mpv_set_property_async
+#define mpv_get_property ptr_mpv_get_property
+#define mpv_get_property_string ptr_mpv_get_property_string
+#define mpv_get_property_osd_string ptr_mpv_get_property_osd_string
+#define mpv_get_property_async ptr_mpv_get_property_async
+#define mpv_observe_property ptr_mpv_observe_property
+#define mpv_unobserve_property ptr_mpv_unobserve_property
+#define mpv_event_name ptr_mpv_event_name
+#define mpv_event_to_node ptr_mpv_event_to_node
+#define mpv_request_event ptr_mpv_request_event
+#define mpv_request_log_messages ptr_mpv_request_log_messages
+#define mpv_wait_event ptr_mpv_wait_event
+#define mpv_wakeup ptr_mpv_wakeup
+#define mpv_set_wakeup_callback ptr_mpv_set_wakeup_callback
+#define mpv_wait_async_requests ptr_mpv_wait_async_requests
+#define mpv_hook_add ptr_mpv_hook_add
+#define mpv_hook_continue ptr_mpv_hook_continue
+#define mpv_stream_cb_add_ro ptr_mpv_stream_cb_add_ro
 
+
+class KrMpv
+{
 	static int64_t read_fn(void *cookie, char *buf, uint64_t nbytes)
 	{
 		IStream *ip = reinterpret_cast<IStream *>(cookie);
@@ -274,294 +312,423 @@ class krmpv
 	{
 		IStream *ip = reinterpret_cast<IStream *>(TVPCreateIStream(ttstr(uri), TJS_BS_READ));
 		info->cookie = reinterpret_cast<void *>(ip);
-		info->read_fn = krmpv::read_fn;
-		info->seek_fn = krmpv::seek_fn;
-		info->close_fn = krmpv::close_fn;
+		info->read_fn = KrMpv::read_fn;
+		info->seek_fn = KrMpv::seek_fn;
+		info->close_fn = KrMpv::close_fn;
 		return ip ? 0 : MPV_ERROR_LOADING_FAILED;
 	}
-public:
-	static tjs_error TJS_INTF_METHOD mpv_client_api_version( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
-		*result = static_cast<tTVInteger>(ptr_mpv_client_api_version());
-		return TJS_S_OK;
-	}
 
-	static tjs_error TJS_INTF_METHOD mpv_error_string( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
+	static tTJSVariant mpv_node_to_tjs_variant(mpv_node *node)
 	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		*result = ttstr(ptr_mpv_error_string(param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_free( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_free(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_client_name( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_client_name(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_create( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
-		*result = reinterpret_cast<tTVInteger>(ptr_mpv_create());
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_initialize( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_initialize(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_destroy( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_destroy(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_terminate_destroy( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_terminate_destroy(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_create_client( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = reinterpret_cast<tTVInteger>(ptr_mpv_create_client(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()), getNarrowString(param[1])));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_create_weak_client( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = reinterpret_cast<tTVInteger>(ptr_mpv_create_weak_client(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()), getNarrowString(param[1])));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_load_config_file( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_load_config_file(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_get_time_us( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_get_time_us(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_free_node_contents( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_free_node_contents(reinterpret_cast<mpv_node *>((tjs_uintptr_t)param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_set_option( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 4) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_set_option(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]), static_cast<mpv_format>(param[2]->AsInteger()), reinterpret_cast<void *>((tjs_uintptr_t)param[3]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_set_option_string( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 3) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_set_option_string(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]), getNarrowString(param[2]));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_command( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		iTJSDispatch2 *strs = param[1]->AsObjectNoAddRef();
-		int count = TJSGetArrayElementCount(strs);
-		const char **cmd = new const char*[count];
-		cmd[count] = nullptr;
-		for (int i = 0; i < count; i += 1) {
-			tTJSVariant str;
-			if (!TJS_SUCCEEDED(strs->PropGetByNum(0, i, &str, strs))) {
-				TVPThrowExceptionMessage(TJS_W("Could not get element of array."));
-			}
-			cmd[i] = getNarrowString(&str);
+		switch (node->format)
+		{
+			case MPV_FORMAT_NONE:
+				return tTJSVariant();
+			case MPV_FORMAT_STRING:
+				{
+					std::string tmp_str_utf8;
+					tjs_string tmp_str_utf16;
+					tmp_str_utf8 = node->u.string;
+					tmp_str_utf16 = TJS_W("");
+					TVPUtf8ToUtf16(tmp_str_utf16, tmp_str_utf8);
+					return tTJSVariant(ttstr(tmp_str_utf16.c_str()));
+				}
+			case MPV_FORMAT_INT64:
+				return tTJSVariant((tTVInteger)node->u.int64);
+			case MPV_FORMAT_DOUBLE:
+				return tTJSVariant((tTVReal)node->u.double_);
+			case MPV_FORMAT_FLAG:
+				return tTJSVariant((tTVInteger)(node->u.flag ? 1 : 0));
+			case MPV_FORMAT_BYTE_ARRAY:
+				return tTJSVariant((const tjs_uint8 *)node->u.ba->data, node->u.ba->size);
+			case MPV_FORMAT_NODE_ARRAY:
+				{
+					iTJSDispatch2 *arr = TJSCreateArrayObject();
+					if (arr)
+					{
+						int len = node->u.list->num;
+						tTJSVariant tmp;
+						for (int i = 0; i < len; i += 1)
+						{
+							tmp = mpv_node_to_tjs_variant(&node->u.list->values[i]);
+							arr->PropSetByNum(TJS_MEMBERENSURE, i, &tmp, arr);
+						}
+						tTJSVariant ret = tTJSVariant(arr, arr);
+						arr->Release();
+						return ret;
+					}
+					return tTJSVariant();
+				}
+			case MPV_FORMAT_NODE_MAP:
+				{
+					iTJSDispatch2 *dic = TJSCreateDictionaryObject();
+					if (dic)
+					{
+						int len = node->u.list->num;
+						tTJSVariant tmp;
+						std::string tmp_key_utf8;
+						tjs_string tmp_key_utf16;
+						for (int i = 0; i < len; i += 1)
+						{
+							tmp_key_utf8 = node->u.list->keys[i];
+							tmp_key_utf16 = TJS_W("");
+							TVPUtf8ToUtf16(tmp_key_utf16, tmp_key_utf8);
+							tmp = mpv_node_to_tjs_variant(&node->u.list->values[i]);
+							dic->PropSet(TJS_MEMBERENSURE, tmp_key_utf16.c_str(), 0, &tmp, dic);
+						}
+						tTJSVariant ret = tTJSVariant(dic, dic);
+						dic->Release();
+						return ret;
+					}
+					return tTJSVariant();
+				}
+			default:
+				return tTJSVariant(TJS_W("[UNSUPPORTED_MPV_FORMAT]"));
 		}
-		*result = ptr_mpv_command(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), cmd);
-		delete cmd;
-		return TJS_S_OK;
+		return tTJSVariant();
 	}
 
-	static tjs_error TJS_INTF_METHOD mpv_command_node( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
+	static void tjs_variant_to_mpv_node(tTJSVariant src, mpv_node *node)
 	{
-		if(numparams != 3) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_command_node(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()), reinterpret_cast<mpv_node *>(param[1]->AsInteger()), reinterpret_cast<mpv_node *>((tjs_uintptr_t)param[2]->AsInteger()));
+		switch (src.Type())
+		{
+			case tvtVoid:
+			{
+				node->format = MPV_FORMAT_NONE;
+				break;
+			}
+			case tvtObject:
+			{
+				node->format = MPV_FORMAT_NONE;
+				// TODO: implement
+#if 0
+				iTJSDispatch2 *obj = src.AsObjectNoAddRef();
+				if (obj == NULL)
+				{
+					node->format = MPV_FORMAT_NONE;
+				}
+				else if (obj->IsInstanceOf(TJS_IGNOREPROP, NULL, NULL, TJS_W("Array"), obj) == TJS_S_TRUE)
+				{
+					tTJSVariant tmp;
+					tTJSVariantClosure closure = param[i]->AsObjectClosureNoAddRef();
+					closure.PropGet(0, TJS_W("count"), 0, &tmp, NULL);
+					tjs_int count = tmp;
+					for (tjs_int i = 0; i < count; i += 1)
+					{
+
+					}
+				}
+				else
+				{
+
+				}
+#endif
+				break;
+			}
+			case tvtString:
+			{
+				// TODO: implement
+#if 0
+				std::string tmp_str_utf8;
+				tjs_string tmp_str_utf16;
+				tmp_str_utf8 = "";
+				tmp_str_utf16 = src.AsString().c_str();
+				TVPUtf16ToUtf8(tmp_str_utf8, tmp_str_utf16);
+				node->format = MPV_FORMAT_STRING;
+				node->u.string = strdup(tmp_str_utf8.c_str());
+#endif
+				break;
+			}
+			case tvtOctet:
+			{
+				node->format = MPV_FORMAT_BYTE_ARRAY;
+				tTJSVariantOctet* octet = src.AsOctetNoAddRef();
+				node->u.ba->data = (void *)octet->GetData();
+				node->u.ba->size = octet->GetLength();
+				break;
+			}
+			case tvtInteger:
+			{
+				node->format = MPV_FORMAT_INT64;
+				node->u.int64 = src.AsInteger();
+				break;
+			}
+			case tvtReal:
+			{
+				node->format = MPV_FORMAT_DOUBLE;
+				node->u.double_ = src.AsReal();
+				break;
+			}
+			default:
+			{
+				node->format = MPV_FORMAT_NONE;
+				break;
+			}
+		}
+	}
+	int last_error;
+	mpv_handle *client;
+public:
+
+	// args: wait in secs (infinite if negative) if mpv doesn't send events earlier.
+	static tjs_error TJS_INTF_METHOD script_wait_event( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		double timeout = -1;
+		if (numparams >= 1 && param[0]->Type() != tvtVoid)
+		{
+			timeout = param[0]->AsInteger();
+		}
+		mpv_event *event = mpv_wait_event(self->client, timeout);
+
+		mpv_node rn;
+		mpv_event_to_node(&rn, event);
+		tTJSVariant r = mpv_node_to_tjs_variant(&rn);
+		if (result)
+		{
+			*result = r;
+		}
+		mpv_free_node_contents(&rn);
 		return TJS_S_OK;
 	}
 
-	static tjs_error TJS_INTF_METHOD mpv_command_string( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
+	// args - command [with arguments] as string
+	static tjs_error TJS_INTF_METHOD script_command( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 1) return TJS_E_BADPARAMCOUNT;
+		std::string tmp_str_utf8;
+		tjs_string tmp_str_utf16;
+		tmp_str_utf8 = "";
+		tmp_str_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str_utf8, tmp_str_utf16);
+		self->last_error = mpv_command_string(self->client, tmp_str_utf8.c_str());
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		return TJS_S_OK;
+	}
+
+	// args - command [with arguments] as string
+	static tjs_error TJS_INTF_METHOD script_commandv( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		std::vector<std::string> argv_storage;
+		// First, allocate stuff here (exception can occur here)
+		for (tjs_int i = 0; i < numparams; i += 1)
+		{
+			std::string tmp_str_utf8;
+			tjs_string tmp_str_utf16;
+			tmp_str_utf8 = "";
+			tmp_str_utf16 = ttstr(param[i]->AsStringNoAddRef()).c_str();
+			TVPUtf16ToUtf8(tmp_str_utf8, tmp_str_utf16);
+			argv_storage.push_back(tmp_str_utf8);
+		}
+		// Then malloc and pointer assignment can occur here
+		const char **argv = (const char **)malloc((numparams + 1) * sizeof(const char *));
+		for (tjs_int i = 0; i < numparams; i += 1)
+		{
+			argv[i] = argv_storage[i].c_str();
+		}
+		argv[numparams] = NULL;	
+		self->last_error = mpv_command(self->client, argv);
+		free(argv);
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		return TJS_S_OK;
+	}
+
+	// TODO: implement
+#if 0
+	// args: native (array of command and args, similar to commandv) [,def]
+	static tjs_error TJS_INTF_METHOD script_command_native( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		// mpv_command_node(self->client, &cmd, presult_node);
+		return TJS_S_OK;
+	}
+#endif
+
+	// args: name [,def]
+	static tjs_error TJS_INTF_METHOD script_get_property_bool( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 1) return TJS_E_BADPARAMCOUNT;
+		int r;
+		std::string tmp_str_utf8;
+		tjs_string tmp_str_utf16;
+		tmp_str_utf8 = "";
+		tmp_str_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str_utf8, tmp_str_utf16);
+		self->last_error = mpv_get_property(self->client, tmp_str_utf8.c_str(), MPV_FORMAT_FLAG, &r);
+		if (self->last_error >= 0)
+		{
+			if (result)
+			{
+				*result = !!r;
+			}
+		}
+		return TJS_S_OK;
+	}
+
+	// args: name [,def]
+	static tjs_error TJS_INTF_METHOD script_get_property_number( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 1) return TJS_E_BADPARAMCOUNT;
+		double r;
+		std::string tmp_str_utf8;
+		tjs_string tmp_str_utf16;
+		tmp_str_utf8 = "";
+		tmp_str_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str_utf8, tmp_str_utf16);
+		self->last_error = mpv_get_property(self->client, tmp_str_utf8.c_str(), MPV_FORMAT_DOUBLE, &r);
+		if (self->last_error >= 0)
+		{
+			if (result)
+			{
+				*result = r;
+			}
+		}
+		return TJS_S_OK;
+	}
+
+	// TODO: implement
+#if 0
+	// args: name [,def]
+	static tjs_error TJS_INTF_METHOD script_get_property_native( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		const char *name = js_tostring(J, 1);
+		mpv_node *presult_node = new_af_mpv_node(af);
+		int e = mpv_get_property(self->client, name, MPV_FORMAT_NODE, presult_node);
+		if (!pushed_error(J, e, 2))
+			pushnode(J, presult_node);
+		return TJS_S_OK;
+	}
+#endif
+
+	// args: name [,def]
+	static tjs_error TJS_INTF_METHOD script_get_property( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		char *r = NULL;
+		std::string tmp_str1_utf8;
+		tjs_string tmp_str1_utf16;
+		tmp_str1_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str1_utf8, tmp_str1_utf16);
+		self->last_error = mpv_get_property(self->client, tmp_str1_utf8.c_str(), MPV_FORMAT_STRING, &r);
+		if (self->last_error >= 0)
+		{
+			std::string tmp_str2_utf8;
+			tjs_string tmp_str2_utf16;
+			tmp_str2_utf8 = r;
+			TVPUtf8ToUtf16(tmp_str2_utf16, tmp_str2_utf8);
+			if (result)
+			{
+				*result = ttstr(tmp_str2_utf16.c_str());
+			}
+			mpv_free(r);
+		}
+		return TJS_S_OK;
+	}
+
+	// args: name, string value
+	static tjs_error TJS_INTF_METHOD script_set_property( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 2) return TJS_E_BADPARAMCOUNT;
+		std::string tmp_str1_utf8;
+		tjs_string tmp_str1_utf16;
+		tmp_str1_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str1_utf8, tmp_str1_utf16);
+		std::string tmp_str2_utf8;
+		tjs_string tmp_str2_utf16;
+		tmp_str2_utf16 = ttstr(param[1]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str2_utf8, tmp_str2_utf16);
+		self->last_error = mpv_set_property_string(self->client, tmp_str1_utf8.c_str(), tmp_str2_utf8.c_str());
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		if (result)
+		{
+			*result = r;
+		}
+		return TJS_S_OK;
+	}
+
+	// args: name, boolean
+	static tjs_error TJS_INTF_METHOD script_set_property_bool( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 2) return TJS_E_BADPARAMCOUNT;
+		std::string tmp_str1_utf8;
+		tjs_string tmp_str1_utf16;
+		tmp_str1_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str1_utf8, tmp_str1_utf16);
+		int v = !!param[1]->AsInteger();
+		self->last_error = mpv_set_property(self->client, tmp_str1_utf8.c_str(), MPV_FORMAT_FLAG, &v);
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		if (result)
+		{
+			*result = r;
+		}
+		return TJS_S_OK;
+	}
+
+	// args: name, number
+	static tjs_error TJS_INTF_METHOD script_set_property_number( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		std::string tmp_str1_utf8;
+		tjs_string tmp_str1_utf16;
+		tmp_str1_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str1_utf8, tmp_str1_utf16);
+		double v = param[1]->AsReal();
+		self->last_error = mpv_set_property(self->client, tmp_str1_utf8.c_str(), MPV_FORMAT_DOUBLE, &v);
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		if (result)
+		{
+			*result = r;
+		}
+		return TJS_S_OK;
+	}
+
+	// TODO: implement
+#if 0
+	// args: name, native value
+	tjs_error TJS_INTF_METHOD script_set_property_native( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		mpv_node node;
+		makenode(af, &node, J, 2);
+		mpv_handle *h = self->client;
+		int e = mpv_set_property(h, js_tostring(J, 1), MPV_FORMAT_NODE, &node);
+		push_status(J, e);
+		return TJS_S_OK;
+	}
+#endif
+
+	// args: none, result in millisec
+	static tjs_error TJS_INTF_METHOD script_get_time_ms( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		tTJSVariant r = (tTVReal)(mpv_get_time_us(self->client) / (double)(1000));
+		if (result)
+		{
+			*result = r;
+		}
+		return TJS_S_OK;
+	}
+
+	static tjs_error TJS_INTF_METHOD script_enable_messages( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 1) return TJS_E_BADPARAMCOUNT;
+		std::string tmp_str1_utf8;
+		tjs_string tmp_str1_utf16;
+		tmp_str1_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str1_utf8, tmp_str1_utf16);
+		self->last_error = mpv_request_log_messages(self->client, tmp_str1_utf8.c_str());
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		if (result)
+		{
+			*result = r;
+		}
+		return TJS_S_OK;
+	}
+
+	static tjs_error TJS_INTF_METHOD krmpv_stream_cb_add_ro( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
 	{
 		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_command_string(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_command_node_async( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 3) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_command_node_async(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger(), reinterpret_cast<mpv_node *>(param[2]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_abort_async_command( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_abort_async_command(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger());
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_set_property( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 4) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_set_property(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()), getNarrowString(param[1]), static_cast<mpv_format>(param[2]->AsInteger()), reinterpret_cast<void *>(param[3]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_set_property_string( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 3) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_set_property_string(reinterpret_cast<mpv_handle *>((tjs_uintptr_t)param[0]->AsInteger()), getNarrowString(param[1]), getNarrowString(param[2]));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_set_property_async( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 5) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_set_property_async(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger(), getNarrowString(param[2]), static_cast<mpv_format>(param[3]->AsInteger()), reinterpret_cast<void *>(param[4]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_get_property( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 4) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_get_property(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]), static_cast<mpv_format>(param[2]->AsInteger()), reinterpret_cast<void *>(param[3]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_get_property_string( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ttstr(ptr_mpv_get_property_string(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1])));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_get_property_osd_string( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ttstr(ptr_mpv_get_property_osd_string(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1])));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_get_property_async( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 4) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_get_property_async(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger(), getNarrowString(param[2]), static_cast<mpv_format>(param[3]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_observe_property( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 4) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_observe_property(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger(), getNarrowString(param[2]), static_cast<mpv_format>(param[3]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_unobserve_property( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_unobserve_property(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger());
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_event_name( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		*result = ttstr(ptr_mpv_event_name(static_cast<mpv_event_id>(param[0]->AsInteger())));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_request_event( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 3) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_request_event(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), static_cast<mpv_event_id>(param[1]->AsInteger()), param[2]->AsInteger());
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_request_log_messages( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_request_log_messages(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_wait_event( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = reinterpret_cast<tTVInteger>(ptr_mpv_wait_event(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsReal()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_wakeup( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_wakeup(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_set_wakeup_callback( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 3) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_set_wakeup_callback(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), reinterpret_cast<void (*)(void *)>(param[1]->AsInteger()), reinterpret_cast<void *>(param[2]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_wait_async_requests( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
-		ptr_mpv_wait_async_requests(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()));
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_hook_add( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 4) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_hook_add(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger(), getNarrowString(param[2]), param[3]->AsInteger());
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD mpv_hook_continue( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_hook_continue(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), param[1]->AsInteger());
-		return TJS_S_OK;
-	}
-
-	static tjs_error TJS_INTF_METHOD krmpv_stream_cb_add_ro( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, iTJSDispatch2 *objthis)
-	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = ptr_mpv_stream_cb_add_ro(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), getNarrowString(param[1]), nullptr, krmpv::open_fn);
+		*result = mpv_stream_cb_add_ro(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), "krmpv", nullptr, KrMpv::open_fn);
 		return TJS_S_OK;
 	}
 };
@@ -600,6 +767,7 @@ static void regcb()
 	if (!(ptr_mpv_observe_property = (def_mpv_observe_property)GetProcAddress(dllhandle, "mpv_observe_property"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_observe_property in mpv-1.dll"));
 	if (!(ptr_mpv_unobserve_property = (def_mpv_unobserve_property)GetProcAddress(dllhandle, "mpv_unobserve_property"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_unobserve_property in mpv-1.dll"));
 	if (!(ptr_mpv_event_name = (def_mpv_event_name)GetProcAddress(dllhandle, "mpv_event_name"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_event_name in mpv-1.dll"));
+	if (!(ptr_mpv_event_to_node = (def_mpv_event_to_node)GetProcAddress(dllhandle, "mpv_event_to_node"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_event_to_node in mpv-1.dll"));
 	if (!(ptr_mpv_request_event = (def_mpv_request_event)GetProcAddress(dllhandle, "mpv_request_event"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_request_event in mpv-1.dll"));
 	if (!(ptr_mpv_request_log_messages = (def_mpv_request_log_messages)GetProcAddress(dllhandle, "mpv_request_log_messages"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_request_log_messages in mpv-1.dll"));
 	if (!(ptr_mpv_wait_event = (def_mpv_wait_event)GetProcAddress(dllhandle, "mpv_wait_event"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_wait_event in mpv-1.dll"));
@@ -609,117 +777,107 @@ static void regcb()
 	if (!(ptr_mpv_hook_add = (def_mpv_hook_add)GetProcAddress(dllhandle, "mpv_hook_add"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_hook_add in mpv-1.dll"));
 	if (!(ptr_mpv_hook_continue = (def_mpv_hook_continue)GetProcAddress(dllhandle, "mpv_hook_continue"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_hook_continue in mpv-1.dll"));
 	if (!(ptr_mpv_stream_cb_add_ro = (def_mpv_stream_cb_add_ro)GetProcAddress(dllhandle, "mpv_stream_cb_add_ro"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_stream_cb_add_ro in mpv-1.dll"));
-	TVPExecuteExpression(
-		TJS_W("const ")
-		TJS_W("MPV_ERROR_SUCCESS = 0,")
-		TJS_W("MPV_ERROR_EVENT_QUEUE_FULL = -1,")
-		TJS_W("MPV_ERROR_NOMEM = -2,")
-		TJS_W("MPV_ERROR_UNINITIALIZED = -3,")
-		TJS_W("MPV_ERROR_INVALID_PARAMETER = -4,")
-		TJS_W("MPV_ERROR_OPTION_NOT_FOUND = -5,")
-		TJS_W("MPV_ERROR_OPTION_FORMAT = -6,")
-		TJS_W("MPV_ERROR_OPTION_ERROR = -7,")
-		TJS_W("MPV_ERROR_PROPERTY_NOT_FOUND = -8,")
-		TJS_W("MPV_ERROR_PROPERTY_FORMAT = -9,")
-		TJS_W("MPV_ERROR_PROPERTY_UNAVAILABLE = -10,")
-		TJS_W("MPV_ERROR_PROPERTY_ERROR = -11,")
-		TJS_W("MPV_ERROR_COMMAND = -12,")
-		TJS_W("MPV_ERROR_LOADING_FAILED = -13,")
-		TJS_W("MPV_ERROR_AO_INIT_FAILED = -14,")
-		TJS_W("MPV_ERROR_VO_INIT_FAILED = -15,")
-		TJS_W("MPV_ERROR_NOTHING_TO_PLAY = -16,")
-		TJS_W("MPV_ERROR_UNKNOWN_FORMAT = -17,")
-		TJS_W("MPV_ERROR_UNSUPPORTED = -18,")
-		TJS_W("MPV_ERROR_NOT_IMPLEMENTED = -19,")
-		TJS_W("MPV_ERROR_GENERIC = -20,")
-		TJS_W("MPV_FORMAT_NONE = 0,")
-		TJS_W("MPV_FORMAT_STRING = 1,")
-		TJS_W("MPV_FORMAT_OSD_STRING = 2,")
-		TJS_W("MPV_FORMAT_FLAG = 3,")
-		TJS_W("MPV_FORMAT_INT64 = 4,")
-		TJS_W("MPV_FORMAT_DOUBLE = 5,")
-		TJS_W("MPV_FORMAT_NODE = 6,")
-		TJS_W("MPV_FORMAT_NODE_ARRAY = 7,")
-		TJS_W("MPV_FORMAT_NODE_MAP = 8,")
-		TJS_W("MPV_FORMAT_BYTE_ARRAY = 9,")
-		TJS_W("MPV_EVENT_NONE = 0,")
-		TJS_W("MPV_EVENT_SHUTDOWN = 1,")
-		TJS_W("MPV_EVENT_LOG_MESSAGE = 2,")
-		TJS_W("MPV_EVENT_GET_PROPERTY_REPLY = 3,")
-		TJS_W("MPV_EVENT_SET_PROPERTY_REPLY = 4,")
-		TJS_W("MPV_EVENT_COMMAND_REPLY = 5,")
-		TJS_W("MPV_EVENT_START_FILE = 6,")
-		TJS_W("MPV_EVENT_END_FILE = 7,")
-		TJS_W("MPV_EVENT_FILE_LOADED = 8,")
-		TJS_W("MPV_EVENT_IDLE = 11,")
-		TJS_W("MPV_EVENT_TICK = 14,")
-		TJS_W("MPV_EVENT_CLIENT_MESSAGE = 16,")
-		TJS_W("MPV_EVENT_VIDEO_RECONFIG = 17,")
-		TJS_W("MPV_EVENT_AUDIO_RECONFIG = 18,")
-		TJS_W("MPV_EVENT_SEEK = 20,")
-		TJS_W("MPV_EVENT_PLAYBACK_RESTART = 21,")
-		TJS_W("MPV_EVENT_PROPERTY_CHANGE = 22,")
-		TJS_W("MPV_EVENT_QUEUE_OVERFLOW = 24,")
-		TJS_W("MPV_EVENT_HOOK = 25,")
-		TJS_W("MPV_LOG_LEVEL_NONE = 0,")
-		TJS_W("MPV_LOG_LEVEL_FATAL = 10,")
-		TJS_W("MPV_LOG_LEVEL_ERROR = 20,")
-		TJS_W("MPV_LOG_LEVEL_WARN = 30,")
-		TJS_W("MPV_LOG_LEVEL_INFO = 40,")
-		TJS_W("MPV_LOG_LEVEL_V = 50,")
-		TJS_W("MPV_LOG_LEVEL_DEBUG = 60,")
-		TJS_W("MPV_LOG_LEVEL_TRACE = 70,")
-		TJS_W("MPV_END_FILE_REASON_EOF = 0,")
-		TJS_W("MPV_END_FILE_REASON_STOP = 2,")
-		TJS_W("MPV_END_FILE_REASON_QUIT = 3,")
-		TJS_W("MPV_END_FILE_REASON_ERROR = 4,")
-		TJS_W("MPV_END_FILE_REASON_REDIRECT = 5")
-	);
 }
 
-NCB_REGISTER_CLASS(krmpv)
+NCB_REGISTER_CLASS(KrMpv)
 {
-	RawCallback("mpv_client_api_version", &Class::mpv_client_api_version, TJS_STATICMEMBER);
-	RawCallback("mpv_error_string", &Class::mpv_error_string, TJS_STATICMEMBER);
-	RawCallback("mpv_free", &Class::mpv_free, TJS_STATICMEMBER);
-	RawCallback("mpv_client_name", &Class::mpv_client_name, TJS_STATICMEMBER);
-	RawCallback("mpv_create", &Class::mpv_create, TJS_STATICMEMBER);
-	RawCallback("mpv_initialize", &Class::mpv_initialize, TJS_STATICMEMBER);
-	RawCallback("mpv_destroy", &Class::mpv_destroy, TJS_STATICMEMBER);
-	RawCallback("mpv_terminate_destroy", &Class::mpv_terminate_destroy, TJS_STATICMEMBER);
-	RawCallback("mpv_create_client", &Class::mpv_create_client, TJS_STATICMEMBER);
-	RawCallback("mpv_create_weak_client", &Class::mpv_create_weak_client, TJS_STATICMEMBER);
-	RawCallback("mpv_load_config_file", &Class::mpv_load_config_file, TJS_STATICMEMBER);
-	RawCallback("mpv_get_time_us", &Class::mpv_get_time_us, TJS_STATICMEMBER);
-	RawCallback("mpv_free_node_contents", &Class::mpv_free_node_contents, TJS_STATICMEMBER);
-	RawCallback("mpv_set_option", &Class::mpv_set_option, TJS_STATICMEMBER);
-	RawCallback("mpv_set_option_string", &Class::mpv_set_option_string, TJS_STATICMEMBER);
-	RawCallback("mpv_command", &Class::mpv_command, TJS_STATICMEMBER);
-	RawCallback("mpv_command_node", &Class::mpv_command_node, TJS_STATICMEMBER);
-	RawCallback("mpv_command_string", &Class::mpv_command_string, TJS_STATICMEMBER);
-	RawCallback("mpv_command_node_async", &Class::mpv_command_node_async, TJS_STATICMEMBER);
-	RawCallback("mpv_abort_async_command", &Class::mpv_abort_async_command, TJS_STATICMEMBER);
-	RawCallback("mpv_set_property", &Class::mpv_set_property, TJS_STATICMEMBER);
-	RawCallback("mpv_set_property_string", &Class::mpv_set_property_string, TJS_STATICMEMBER);
-	RawCallback("mpv_set_property_async", &Class::mpv_set_property_async, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property", &Class::mpv_get_property, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property_string", &Class::mpv_get_property_string, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property_osd_string", &Class::mpv_get_property_osd_string, TJS_STATICMEMBER);
-	RawCallback("mpv_get_property_async", &Class::mpv_get_property_async, TJS_STATICMEMBER);
-	RawCallback("mpv_observe_property", &Class::mpv_observe_property, TJS_STATICMEMBER);
-	RawCallback("mpv_unobserve_property", &Class::mpv_unobserve_property, TJS_STATICMEMBER);
-	RawCallback("mpv_event_name", &Class::mpv_event_name, TJS_STATICMEMBER);
-	RawCallback("mpv_request_event", &Class::mpv_request_event, TJS_STATICMEMBER);
-	RawCallback("mpv_request_log_messages", &Class::mpv_request_log_messages, TJS_STATICMEMBER);
-	RawCallback("mpv_wait_event", &Class::mpv_wait_event, TJS_STATICMEMBER);
-	RawCallback("mpv_wakeup", &Class::mpv_wakeup, TJS_STATICMEMBER);
-	RawCallback("mpv_set_wakeup_callback", &Class::mpv_set_wakeup_callback, TJS_STATICMEMBER);
-	RawCallback("mpv_wait_async_requests", &Class::mpv_wait_async_requests, TJS_STATICMEMBER);
-	RawCallback("mpv_hook_add", &Class::mpv_hook_add, TJS_STATICMEMBER);
-	RawCallback("mpv_hook_continue", &Class::mpv_hook_continue, TJS_STATICMEMBER);
+	// RawCallback("log", &Class::script_log, 0);
+	RawCallback("wait_event", &Class::script_wait_event, 0);
+	// RawCallback("_request_event", &Class::script__request_event, 0);
+	// RawCallback("find_config_file", &Class::script_find_config_file, 0);
+	RawCallback("command", &Class::script_command, 0);
+	RawCallback("commandv", &Class::script_commandv, 0);
+	// RawCallback("command_native", &Class::script_command_native, 0);
+	// RawCallback("_command_native_async", &Class::script__command_native_async, 0);
+	// RawCallback("_abort_async_command", &Class::script__abort_async_command, 0);
+	RawCallback("get_property_bool", &Class::script_get_property_bool, 0);
+	RawCallback("get_property_number", &Class::script_get_property_number, 0);
+	// RawCallback("get_property_native", &Class::script_get_property_native, 0);
+	RawCallback("get_property", &Class::script_get_property, 0);
+	// RawCallback("get_property_osd", &Class::script_get_property_osd, 0);
+	RawCallback("set_property", &Class::script_set_property, 0);
+	RawCallback("set_property_bool", &Class::script_set_property_bool, 0);
+	RawCallback("set_property_number", &Class::script_set_property_number, 0);
+	// RawCallback("set_property_native", &Class::script_set_property_native, 0);
+	// RawCallback("_observe_property", &Class::script__observe_property, 0);
+	// RawCallback("_unobserve_property", &Class::script__unobserve_property, 0);
+	RawCallback("get_time_ms", &Class::script_get_time_ms, 0);
+	// RawCallback("format_time", &Class::script_format_time, 0);
+	RawCallback("enable_messages", &Class::script_enable_messages, 0);
+	// RawCallback("get_wakeup_pipe", &Class::script_get_wakeup_pipe, 0);
+	// RawCallback("_hook_add", &Class::script__hook_add, 0);
+	// RawCallback("_hook_continue", &Class::script__hook_continue, 0);
+	// RawCallback("input_set_section_mouse_area", &Class::script_input_set_section_mouse_area, 0);
+	// RawCallback("last_error", &Class::script_last_error, 0);
+	// RawCallback("_set_last_error", &Class::script__set_last_error, 0);
 	RawCallback("krmpv_stream_cb_add_ro", &Class::krmpv_stream_cb_add_ro, TJS_STATICMEMBER);
+	Variant("MPV_ERROR_SUCCESS", 0);
+	Variant("MPV_ERROR_EVENT_QUEUE_FULL", -1);
+	Variant("MPV_ERROR_NOMEM", -2);
+	Variant("MPV_ERROR_UNINITIALIZED", -3);
+	Variant("MPV_ERROR_INVALID_PARAMETER", -4);
+	Variant("MPV_ERROR_OPTION_NOT_FOUND", -5);
+	Variant("MPV_ERROR_OPTION_FORMAT", -6);
+	Variant("MPV_ERROR_OPTION_ERROR", -7);
+	Variant("MPV_ERROR_PROPERTY_NOT_FOUND", -8);
+	Variant("MPV_ERROR_PROPERTY_FORMAT", -9);
+	Variant("MPV_ERROR_PROPERTY_UNAVAILABLE", -10);
+	Variant("MPV_ERROR_PROPERTY_ERROR", -11);
+	Variant("MPV_ERROR_COMMAND", -12);
+	Variant("MPV_ERROR_LOADING_FAILED", -13);
+	Variant("MPV_ERROR_AO_INIT_FAILED", -14);
+	Variant("MPV_ERROR_VO_INIT_FAILED", -15);
+	Variant("MPV_ERROR_NOTHING_TO_PLAY", -16);
+	Variant("MPV_ERROR_UNKNOWN_FORMAT", -17);
+	Variant("MPV_ERROR_UNSUPPORTED", -18);
+	Variant("MPV_ERROR_NOT_IMPLEMENTED", -19);
+	Variant("MPV_ERROR_GENERIC", -20);
+	Variant("MPV_FORMAT_NONE", 0);
+	Variant("MPV_FORMAT_STRING", 1);
+	Variant("MPV_FORMAT_OSD_STRING", 2);
+	Variant("MPV_FORMAT_FLAG", 3);
+	Variant("MPV_FORMAT_INT64", 4);
+	Variant("MPV_FORMAT_DOUBLE", 5);
+	Variant("MPV_FORMAT_NODE", 6);
+	Variant("MPV_FORMAT_NODE_ARRAY", 7);
+	Variant("MPV_FORMAT_NODE_MAP", 8);
+	Variant("MPV_FORMAT_BYTE_ARRAY", 9);
+	Variant("MPV_EVENT_NONE", 0);
+	Variant("MPV_EVENT_SHUTDOWN", 1);
+	Variant("MPV_EVENT_LOG_MESSAGE", 2);
+	Variant("MPV_EVENT_GET_PROPERTY_REPLY", 3);
+	Variant("MPV_EVENT_SET_PROPERTY_REPLY", 4);
+	Variant("MPV_EVENT_COMMAND_REPLY", 5);
+	Variant("MPV_EVENT_START_FILE", 6);
+	Variant("MPV_EVENT_END_FILE", 7);
+	Variant("MPV_EVENT_FILE_LOADED", 8);
+	Variant("MPV_EVENT_IDLE", 11);
+	Variant("MPV_EVENT_TICK", 14);
+	Variant("MPV_EVENT_CLIENT_MESSAGE", 16);
+	Variant("MPV_EVENT_VIDEO_RECONFIG", 17);
+	Variant("MPV_EVENT_AUDIO_RECONFIG", 18);
+	Variant("MPV_EVENT_SEEK", 20);
+	Variant("MPV_EVENT_PLAYBACK_RESTART", 21);
+	Variant("MPV_EVENT_PROPERTY_CHANGE", 22);
+	Variant("MPV_EVENT_QUEUE_OVERFLOW", 24);
+	Variant("MPV_EVENT_HOOK", 25);
+	Variant("MPV_LOG_LEVEL_NONE", 0);
+	Variant("MPV_LOG_LEVEL_FATAL", 10);
+	Variant("MPV_LOG_LEVEL_ERROR", 20);
+	Variant("MPV_LOG_LEVEL_WARN", 30);
+	Variant("MPV_LOG_LEVEL_INFO", 40);
+	Variant("MPV_LOG_LEVEL_V", 50);
+	Variant("MPV_LOG_LEVEL_DEBUG", 60);
+	Variant("MPV_LOG_LEVEL_TRACE", 70);
+	Variant("MPV_END_FILE_REASON_EOF", 0);
+	Variant("MPV_END_FILE_REASON_STOP", 2);
+	Variant("MPV_END_FILE_REASON_QUIT", 3);
+	Variant("MPV_END_FILE_REASON_ERROR", 4);
+	Variant("MPV_END_FILE_REASON_REDIRECT", 5);
 };
 
+// We'll develop a TJS wrapper first…
+#if 0
 class VideoOverlayMpv
 {
 public:
@@ -982,6 +1140,7 @@ NCB_ATTACH_CLASS(VideoOverlayMpv, VideoOverlay)
 	Property("saturationStepSize", &Class::saturationStepSize_get, &Class::saturationStepSize_set);
 	Property("saturation", &Class::saturation_get, &Class::saturation_set);
 };
+#endif
 
 NCB_PRE_REGIST_CALLBACK(regcb);
 
@@ -1017,6 +1176,7 @@ static void unregcb() {
 	ptr_mpv_observe_property = nullptr;
 	ptr_mpv_unobserve_property = nullptr;
 	ptr_mpv_event_name = nullptr;
+	ptr_mpv_event_to_node = nullptr;
 	ptr_mpv_request_event = nullptr;
 	ptr_mpv_request_log_messages = nullptr;
 	ptr_mpv_wait_event = nullptr;

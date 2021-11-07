@@ -278,9 +278,25 @@ def_mpv_stream_cb_add_ro ptr_mpv_stream_cb_add_ro;
 #define mpv_hook_continue ptr_mpv_hook_continue
 #define mpv_stream_cb_add_ro ptr_mpv_stream_cb_add_ro
 
+#define	WM_MPV_WAKEUP (WM_APP+3008)
 
 class KrMpv
 {
+	int last_error;
+	mpv_handle *client;
+	iTJSDispatch2 *objthis;
+	tTJSVariant window;
+	tTJSVariant message_receiver_callback;
+	HWND hwnd;
+
+	static int64_t size_fn(void *cookie)
+	{
+		IStream *ip = reinterpret_cast<IStream *>(cookie);
+		STATSTG statstg;
+		ip->Stat(&statstg, STATFLAG_NONAME);
+		return statstg.cbSize.QuadPart;
+	}
+
 	static int64_t read_fn(void *cookie, char *buf, uint64_t nbytes)
 	{
 		IStream *ip = reinterpret_cast<IStream *>(cookie);
@@ -296,7 +312,7 @@ class KrMpv
 	{
 		IStream *ip = reinterpret_cast<IStream *>(cookie);
 		ULARGE_INTEGER newpos;
-		HRESULT res = ip->Seek({ offset }, STREAM_SEEK_SET, &newpos);
+		HRESULT res = ip->Seek({ .QuadPart = offset }, STREAM_SEEK_SET, &newpos);
 		if (res != S_OK)
 			return MPV_ERROR_GENERIC;
 		return newpos.QuadPart;
@@ -312,6 +328,7 @@ class KrMpv
 	{
 		IStream *ip = reinterpret_cast<IStream *>(TVPCreateIStream(ttstr(uri), TJS_BS_READ));
 		info->cookie = reinterpret_cast<void *>(ip);
+		info->size_fn = KrMpv::size_fn;
 		info->read_fn = KrMpv::read_fn;
 		info->seek_fn = KrMpv::seek_fn;
 		info->close_fn = KrMpv::close_fn;
@@ -466,9 +483,104 @@ class KrMpv
 			}
 		}
 	}
-	int last_error;
-	mpv_handle *client;
+
+	bool message_receiver(tTVPWindowMessage *msg)
+	{
+		switch (msg->Msg)
+		{
+			case WM_MPV_WAKEUP: 
+			{
+				if (this == (KrMpv*)msg->WParam)
+				{
+					if (message_receiver_callback.Type() == tvtObject)
+					{
+						message_receiver_callback.AsObjectClosureNoAddRef().FuncCall(0, NULL, NULL, NULL, 0, NULL, NULL);
+					}
+					return true;
+				}
+			}
+			break;
+		}
+		return false;
+	}
+
+	static bool __stdcall message_receiver_entry(void *userdata, tTVPWindowMessage *msg)
+	{
+		return ((KrMpv *)userdata)->message_receiver(msg);
+	}
+
+	void setup_message_receiver(bool enable)
+	{
+		tTJSVariant mode     = enable ? (tTVInteger)(tjs_int)wrmRegister : (tTVInteger)(tjs_int)wrmUnregister;
+		tTJSVariant recvfunc = (tTVInteger)(tjs_int)message_receiver_entry;
+		tTJSVariant userdata = (tTVInteger)(tjs_int)this;
+		tTJSVariant *p[] = {&mode, &recvfunc, &userdata};
+		if (window.Type() == tvtObject && window.AsObjectClosureNoAddRef().FuncCall(0, TJS_W("registerMessageReceiver"), NULL, NULL, 4, p, NULL) != TJS_S_OK)
+		{
+			TVPThrowExceptionMessage(TJS_W("Unable to register message receiver"));
+		}
+	}
+
+	void wakeup_callback(void)
+	{
+		::PostMessage(hwnd, WM_MPV_WAKEUP, reinterpret_cast<WPARAM>(this), 0);
+	}
+
+	static void wakeup_callback_entry(void *userdata)
+	{
+		((KrMpv *)userdata)->wakeup_callback();
+	}
+
+	void setup_wakeup_callback(bool enable)
+	{
+		if (enable)
+		{
+			mpv_set_wakeup_callback(client, wakeup_callback_entry, (void *)this);
+		}
+		else
+		{
+			mpv_set_wakeup_callback(client, NULL, NULL);
+		}
+	}
+
 public:
+
+	KrMpv(iTJSDispatch2 *objthis)
+	{
+		this->objthis = objthis;
+		this->client = mpv_create();
+		if (!this->client)
+		{
+			TVPThrowExceptionMessage(TJS_W("Unable to create mpv context"));
+		}
+	}
+
+	~KrMpv()
+	{
+		setup_wakeup_callback(false);
+		setup_message_receiver(false);
+		mpv_destroy(client);
+	}
+
+	static tjs_error factory(KrMpv **result, tjs_int numparams, tTJSVariant **params, iTJSDispatch2 *objthis)
+	{
+		if (result)
+		{
+			*result = new KrMpv(objthis);
+		}
+		return TJS_S_OK;
+	}
+
+	static tjs_error TJS_INTF_METHOD script_initialize( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		self->last_error = mpv_initialize(self->client);
+		if (self->last_error >= 0)
+		{
+			self->last_error = mpv_stream_cb_add_ro(self->client, "krmpv", nullptr, KrMpv::open_fn);
+		}
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		return TJS_S_OK;
+	}
 
 	// args: wait in secs (infinite if negative) if mpv doesn't send events earlier.
 	static tjs_error TJS_INTF_METHOD script_wait_event( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
@@ -725,10 +837,36 @@ public:
 		return TJS_S_OK;
 	}
 
-	static tjs_error TJS_INTF_METHOD krmpv_stream_cb_add_ro( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	static tjs_error TJS_INTF_METHOD script_last_error( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
 	{
-		if(numparams != 2) return TJS_E_BADPARAMCOUNT;
-		*result = mpv_stream_cb_add_ro(reinterpret_cast<mpv_handle *>(param[0]->AsInteger()), "krmpv", nullptr, KrMpv::open_fn);
+		if (result)
+		{
+			*result = self->last_error;
+		}
+		return TJS_S_OK;
+	}
+
+	static tjs_error TJS_INTF_METHOD script_set_wakeup_callback( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 2) return TJS_E_BADPARAMCOUNT;
+		self->setup_wakeup_callback(false);
+		self->setup_message_receiver(false);
+		if (param[0]->Type() != tvtObject || param[1]->Type() != tvtObject)
+		{
+			self->message_receiver_callback = tTJSVariant();
+			self->window = tTJSVariant();
+			self->hwnd = NULL;
+		}
+		else
+		{
+			self->message_receiver_callback = *param[0];
+			self->window = *param[1];
+			tTJSVariant val;
+			self->window.AsObjectClosureNoAddRef().PropGet(0, TJS_W("HWND"), NULL, &val, NULL);
+			self->hwnd = reinterpret_cast<HWND>((tjs_intptr_t)(tjs_int64)(val));
+			self->setup_message_receiver(true);
+			self->setup_wakeup_callback(true);
+		}
 		return TJS_S_OK;
 	}
 };
@@ -781,6 +919,8 @@ static void regcb()
 
 NCB_REGISTER_CLASS(KrMpv)
 {
+	Factory(&ClassT::factory);
+	RawCallback("initialize", &Class::script_initialize, 0);
 	// RawCallback("log", &Class::script_log, 0);
 	RawCallback("wait_event", &Class::script_wait_event, 0);
 	// RawCallback("_request_event", &Class::script__request_event, 0);
@@ -808,9 +948,9 @@ NCB_REGISTER_CLASS(KrMpv)
 	// RawCallback("_hook_add", &Class::script__hook_add, 0);
 	// RawCallback("_hook_continue", &Class::script__hook_continue, 0);
 	// RawCallback("input_set_section_mouse_area", &Class::script_input_set_section_mouse_area, 0);
-	// RawCallback("last_error", &Class::script_last_error, 0);
+	RawCallback("last_error", &Class::script_last_error, 0);
 	// RawCallback("_set_last_error", &Class::script__set_last_error, 0);
-	RawCallback("krmpv_stream_cb_add_ro", &Class::krmpv_stream_cb_add_ro, TJS_STATICMEMBER);
+	RawCallback("set_wakeup_callback", &Class::script_set_wakeup_callback, 0);
 	Variant("MPV_ERROR_SUCCESS", 0);
 	Variant("MPV_ERROR_EVENT_QUEUE_FULL", -1);
 	Variant("MPV_ERROR_NOMEM", -2);

@@ -1,0 +1,4 @@
+[submodule "external/ncbind"]
+	path = external/ncbind
+	url = https://github.com/uyjulian/ncbind.git
+	branch = mingw

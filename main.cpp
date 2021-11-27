@@ -512,8 +512,8 @@ class KrMpv
 	void setup_message_receiver(bool enable)
 	{
 		tTJSVariant mode     = enable ? (tTVInteger)(tjs_int)wrmRegister : (tTVInteger)(tjs_int)wrmUnregister;
-		tTJSVariant recvfunc = (tTVInteger)(tjs_int)message_receiver_entry;
-		tTJSVariant userdata = (tTVInteger)(tjs_int)this;
+		tTJSVariant recvfunc = (tTVInteger)(tjs_intptr_t)message_receiver_entry;
+		tTJSVariant userdata = (tTVInteger)(tjs_intptr_t)this;
 		tTJSVariant *p[] = {&mode, &recvfunc, &userdata};
 		if (window.Type() == tvtObject && window.AsObjectClosureNoAddRef().FuncCall(0, TJS_W("registerMessageReceiver"), NULL, NULL, 4, p, NULL) != TJS_S_OK)
 		{

@@ -148,10 +148,23 @@ endif
 
 FFMPEG_ARCH ?= x86
 
+ifeq (xarm32,x$(TARGET_ARCH))
+    OPENGL_LIB ?=
+    MPV_ENABLEOPENGL ?= --disable-gl-win32
+endif
+
+ifeq (xarm64,x$(TARGET_ARCH))
+    OPENGL_LIB ?=
+    MPV_ENABLEOPENGL ?= --disable-gl-win32
+endif
+
+OPENGL_LIB ?= -lopengl32
+MPV_ENABLEOPENGL ?= --enable-gl-win32
+
 EXTLIBS += $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libiconv.a $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libz.a $(FFMPEG_LIBS) $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libass.a $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libfribidi.a $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libharfbuzz.a $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libfreetype.a $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libbrotlidec.a $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libbrotlicommon.a $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libmpv.a
 SOURCES += $(EXTLIBS)
 OBJECTS += $(EXTLIBS)
-LDLIBS += $(EXTLIBS) $(EXTLIBS) $(EXTLIBS) -luuid -lbcrypt -lopengl32 -lgdi32 -lole32 -ldwmapi -lwinmm -lavrt
+LDLIBS += $(EXTLIBS) $(EXTLIBS) $(EXTLIBS) -luuid -lbcrypt $(OPENGL_LIB) -lgdi32 -lole32 -ldwmapi -lwinmm -lavrt
 
 INCFLAGS += -I$(DEPENDENCY_OUTPUT_DIRECTORY)/include
 
@@ -377,6 +390,8 @@ $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libmpv.a: $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/
 		--disable-spirv-cross \
 		--disable-d3d11 \
 		--disable-cplayer \
+		--enable-direct3d \
+		$(MPV_ENABLEOPENGL) \
 		--prefix=$(DEPENDENCY_OUTPUT_DIRECTORY) \
 	&& \
 	CC=$(CC) \

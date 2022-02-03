@@ -1,7 +1,10 @@
 #include "ncbind/ncbind.hpp"
 #include "CharacterSet.h"
 #include <vector>
+#include <mpv/client.h>
+#include <mpv/stream_cb.h>
 
+#if 0
 typedef struct mpv_handle mpv_handle;
 
 typedef enum mpv_error {
@@ -277,6 +280,7 @@ def_mpv_stream_cb_add_ro ptr_mpv_stream_cb_add_ro;
 #define mpv_hook_add ptr_mpv_hook_add
 #define mpv_hook_continue ptr_mpv_hook_continue
 #define mpv_stream_cb_add_ro ptr_mpv_stream_cb_add_ro
+#endif
 
 #define	WM_MPV_WAKEUP (WM_APP+3008)
 
@@ -873,6 +877,7 @@ public:
 
 static void regcb()
 {
+#if 0
 	dllhandle = LoadLibrary(TEXT("mpv-1.dll"));
 	if (!dllhandle) TVPThrowExceptionMessage(TJS_W("krmpv: couldn't load mpv-1.dll"));
 	if (!(ptr_mpv_client_api_version = (def_mpv_client_api_version)GetProcAddress(dllhandle, "mpv_client_api_version"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_client_api_version in mpv-1.dll"));
@@ -915,6 +920,7 @@ static void regcb()
 	if (!(ptr_mpv_hook_add = (def_mpv_hook_add)GetProcAddress(dllhandle, "mpv_hook_add"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_hook_add in mpv-1.dll"));
 	if (!(ptr_mpv_hook_continue = (def_mpv_hook_continue)GetProcAddress(dllhandle, "mpv_hook_continue"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_hook_continue in mpv-1.dll"));
 	if (!(ptr_mpv_stream_cb_add_ro = (def_mpv_stream_cb_add_ro)GetProcAddress(dllhandle, "mpv_stream_cb_add_ro"))) TVPThrowExceptionMessage(TJS_W("krmpv: could not find symbol mpv_stream_cb_add_ro in mpv-1.dll"));
+#endif
 }
 
 NCB_REGISTER_CLASS(KrMpv)
@@ -1285,6 +1291,7 @@ NCB_ATTACH_CLASS(VideoOverlayMpv, VideoOverlay)
 NCB_PRE_REGIST_CALLBACK(regcb);
 
 static void unregcb() {
+#if 0
 	FreeLibrary(dllhandle);
 	ptr_mpv_client_api_version = nullptr;
 	ptr_mpv_error_string = nullptr;
@@ -1326,6 +1333,7 @@ static void unregcb() {
 	ptr_mpv_hook_add = nullptr;
 	ptr_mpv_hook_continue = nullptr;
 	ptr_mpv_stream_cb_add_ro = nullptr;
+#endif
 }
 
 NCB_POST_UNREGIST_CALLBACK(unregcb);

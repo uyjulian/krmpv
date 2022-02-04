@@ -213,6 +213,7 @@ $(DEPENDENCY_BUILD_DIRECTORY_FFMPEG): | $(DEPENDENCY_SOURCE_DIRECTORY_FFMPEG) $(
 		--disable-cuda \
 		--disable-cuvid \
 		--disable-debug \
+		--disable-stripping \
 		--disable-doc \
 		--disable-nvenc \
 		--disable-postproc \
@@ -231,9 +232,10 @@ $(DEPENDENCY_BUILD_DIRECTORY_FFMPEG): | $(DEPENDENCY_SOURCE_DIRECTORY_FFMPEG) $(
 		--disable-protocols \
 		--disable-network \
 		--disable-devices \
+		--disable-muxers \
+		--disable-encoders \
 		--enable-decoders \
 		--enable-demuxers \
-		--disable-decoder=imm5,rawvideo,wrapped_avframe,xface,yop,012v,4xm,8bps,aasc,agm,alias_pix,amv,anm,ansi,arbc,argo,asv1,asv2,aura,aura2,av1,avrn,avrp,avs,avui,ayuv,bethsoftvid,bfi,binkvideo,bintext,bmp,bmv_video,brender_pix,c93,camstudio,camtasia,cavs,cdgraphics,cdtoons,cdxl,cinepak,clearvideo,cljr,cpia,cyuv,dfa,dpx,dsicinvideo,dxa,eacmv,eamad,eatgq,eatgv,eatqi,escape124,escape130,fits,flashsv,flashsv2,flic,fmvc,frwu,g2m,gdv,gif,h261,hnm4video,hq_hqa,idcinvideo,idf,iff,imm4,indeo2,indeo3,indeo4,indeo5,interplayvideo,ipu,jpegls,jv,kgv1,kmvc,loco,lscr,m101,mjpeg,mjpegb,mmvideo,mobiclip,motionpixels,msa1,mscc,msp2,msrle,mss1,mss2,msvideo1,mts2,mv30,mvc1,mvc2,mvdv,mvha,mwsc,mxpeg,nuv,paf_video,pam,pbm,pcx,pfm,pgm,pgmyuv,pgx,pictor,ppm,prosumer,ptx,qdraw,qpeg,qtrle,r10k,r210,rasc,rl2,roqvideo,rpza,rscc,rv10,rv20,sanm,scpr,screenpresso,sga,sgi,sgirle,simbiosis_imx,smackvid,smc,smvjpeg,snow,sp5x,speedhq,srgc,sunrast,svq1,targa,targa_y216,tdsc,thp,tiertexseqvideo,tmv,truemotion1,truemotion2,truemotion2rt,tscc2,txd,ultimotion,v210x,v308,v408,vb,vc1,vc1image,vcr1,vmdvideo,vmnc,vp5,vp6,vp6f,vp7,vqavideo,wcmv,wmv3,wmv3image,wnv1,xan_wc3,xan_wc4,xbin,xbm,xl,xpm,xwd,y41p,yuv4,zerocodec,zmbv,flv,h263,h263i,h263p,msmpeg4,msmpeg4v1,msmpeg4v2,svq3,wmv1,wmv2,bitpacked,dds,dirac,fic,vp6a,mpeg1video,mpeg2video,mpegvideo,aic,apng,cfhd,cllc,cri,dxtory,fraps,lagarith,mdec,mimic,mszh,notchlc,photocd,pixlet,png,psd,rv30,rv40,sheervideo,tiff,utvideo,vble,webp,ylc,ffvhuff,huffyuv,hymt,mpeg4,theora,vp3,vp4,dnxhd,dvvideo,dxv,exr,ffv1,h264,hap,hevc,hqx,jpeg2000,magicyuv,prores,v210,v410,vp8,vp9 \
 		--arch=$(FFMPEG_ARCH) \
 		--enable-cross-compile \
 		--cross-prefix=$(TOOL_TRIPLET_PREFIX) \

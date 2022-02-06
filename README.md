@@ -2,6 +2,8 @@
 
 This plugin allows the usage of [libmpv](https://mpv.io/) in [Kirikiri / 吉里吉里 2 / Z](https://krkrz.github.io/).  
 Using libmpv allows for more codecs and more flexibility than using the `VideoOverlay` class in Kirikiri.  
+This plugin does not rely on DirectShow or Windows Media Foundation, so you can display movies or videos using this plugin on Linux / SteamOS (Steam Deck) / Wine / Proton without installing additional software, or require the user to install the Media Feature Pack for Windows N on Windows when using certain editions of Windows.  
+This plugin is also more predictible than using DirectShow or Windows Media Foundation, since the user may have installed codecs that can cause crashes or playback to be performed incorrectly. As such, using this plugin will reduce the amount of support requests related to movie playback.  
 
 ## Building
 

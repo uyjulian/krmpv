@@ -226,13 +226,13 @@ $(DEPENDENCY_BUILD_DIRECTORY_FFMPEG): | $(DEPENDENCY_SOURCE_DIRECTORY_FFMPEG) $(
 		--enable-swresample \
 		--enable-runtime-cpudetect \
 		--enable-static \
-		--disable-w32threads \
+		--enable-w32threads \
 		--disable-protocols \
 		--disable-network \
 		--disable-devices \
 		--disable-muxers \
 		--disable-encoders \
-		--enable-pthreads \
+		--disable-pthreads \
 		--enable-decoders \
 		--enable-demuxers \
 		--arch=$(FFMPEG_ARCH) \

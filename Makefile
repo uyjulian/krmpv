@@ -391,7 +391,7 @@ $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libmpv.a: $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/
 		--disable-spirv-cross \
 		--disable-d3d11 \
 		--disable-cplayer \
-		--enable-direct3d \
+		--enable-lgpl \
 		$(MPV_ENABLEOPENGL) \
 		--prefix=$(DEPENDENCY_OUTPUT_DIRECTORY) \
 	&& \

@@ -306,9 +306,6 @@ class KrMpv
 		IStream *ip = reinterpret_cast<IStream *>(cookie);
 		ULONG readbytes;
 		ip->Read(reinterpret_cast<void *>(buf), nbytes, &readbytes);
-		if (nbytes != readbytes) {
-			return -1;
-		}
 		return readbytes;
 	}
 
@@ -330,7 +327,16 @@ class KrMpv
 
 	static int open_fn(void *user_data, char *uri, mpv_stream_cb_info *info)
 	{
-		IStream *ip = reinterpret_cast<IStream *>(TVPCreateIStream(ttstr(uri), TJS_BS_READ));
+		std::string tmp_str_utf8;
+		tjs_string tmp_str_utf16;
+		tmp_str_utf8 = uri;
+		tmp_str_utf16 = TJS_W("");
+		TVPUtf8ToUtf16(tmp_str_utf16, tmp_str_utf8);
+		if (tmp_str_utf16.length() <= 8)
+		{
+			return MPV_ERROR_LOADING_FAILED;
+		}
+		IStream *ip = reinterpret_cast<IStream *>(TVPCreateIStream(ttstr(tmp_str_utf16.c_str() + 8 /* skip krmpv:// */), TJS_BS_READ));
 		info->cookie = reinterpret_cast<void *>(ip);
 		info->size_fn = KrMpv::size_fn;
 		info->read_fn = KrMpv::read_fn;
@@ -624,7 +630,7 @@ public:
 	// args - command [with arguments] as string
 	static tjs_error TJS_INTF_METHOD script_commandv( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
 	{
-		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		if(numparams == 0) return TJS_E_BADPARAMCOUNT;
 		std::vector<std::string> argv_storage;
 		// First, allocate stuff here (exception can occur here)
 		for (tjs_int i = 0; i < numparams; i += 1)
@@ -720,7 +726,7 @@ public:
 	// args: name [,def]
 	static tjs_error TJS_INTF_METHOD script_get_property( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
 	{
-		if(numparams != 0) return TJS_E_BADPARAMCOUNT;
+		if(numparams != 1) return TJS_E_BADPARAMCOUNT;
 		char *r = NULL;
 		std::string tmp_str1_utf8;
 		tjs_string tmp_str1_utf16;

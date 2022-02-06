@@ -1,3 +1,12 @@
+/////////////////////////////////////////////
+//                                         //
+//    Copyright (C) 2020-2022 Julian Uy    //
+//  https://sites.google.com/site/awertyb  //
+//                                         //
+//   See details of license at "LICENSE"   //
+//                                         //
+/////////////////////////////////////////////
+
 #include "ncbind/ncbind.hpp"
 #include "CharacterSet.h"
 #include <vector>

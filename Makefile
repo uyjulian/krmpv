@@ -1,6 +1,6 @@
 #############################################
 ##                                         ##
-##    Copyright (C) 2020-2021 Julian Uy    ##
+##    Copyright (C) 2020-2022 Julian Uy    ##
 ##  https://sites.google.com/site/awertyb  ##
 ##                                         ##
 ##   See details of license at "LICENSE"   ##
@@ -11,8 +11,9 @@ BASESOURCES += main.cpp CharacterSet.cpp
 SOURCES += $(BASESOURCES)
 PROJECT_BASENAME = krmpv
 
+RC_URL ?= https://github.com/uyjulian/$(PROJECT_BASENAME)
 RC_FILEDESCRIPTION ?= libmpv video player plugin for TVP(KIRIKIRI) (2/Z)
-RC_LEGALCOPYRIGHT ?= Copyright (C) 2020-2021 Julian Uy; This product is licensed under the MIT license.
+RC_LEGALCOPYRIGHT ?= Copyright (C) 2020-2022 Julian Uy; This product is licensed under the LGPL2.1 or later license.
 RC_PRODUCTNAME ?= libmpv video player plugin for TVP(KIRIKIRI) (2/Z)
 
 include external/ncbind/Rules.lib.make

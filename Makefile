@@ -218,7 +218,6 @@ $(DEPENDENCY_BUILD_DIRECTORY_FFMPEG): | $(DEPENDENCY_SOURCE_DIRECTORY_FFMPEG) $(
 		--disable-nvenc \
 		--disable-postproc \
 		--disable-programs \
-		--disable-pthreads \
 		--disable-schannel \
 		--disable-shared \
 		--disable-audiotoolbox \
@@ -227,13 +226,13 @@ $(DEPENDENCY_BUILD_DIRECTORY_FFMPEG): | $(DEPENDENCY_SOURCE_DIRECTORY_FFMPEG) $(
 		--enable-swresample \
 		--enable-runtime-cpudetect \
 		--enable-static \
-		--enable-w32threads \
-		--disable-everything \
+		--disable-w32threads \
 		--disable-protocols \
 		--disable-network \
 		--disable-devices \
 		--disable-muxers \
 		--disable-encoders \
+		--enable-pthreads \
 		--enable-decoders \
 		--enable-demuxers \
 		--arch=$(FFMPEG_ARCH) \

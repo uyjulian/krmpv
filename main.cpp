@@ -336,6 +336,18 @@ public:
 		mpv_node rn;
 		mpv_event_to_node(&rn, event);
 		tTJSVariant r = mpv_node_to_tjs_variant(&rn);
+		if (r.Type() == tvtObject && event->event_id == MPV_EVENT_HOOK)
+		{
+			// Insert the hook name here (at least until mpv is patched)
+			tTJSVariant val;
+			std::string tmp_str_utf8;
+			tjs_string tmp_str_utf16;
+			tmp_str_utf8 = ((mpv_event_hook*)(event->data))->name;
+			tmp_str_utf16 = TJS_W("");
+			TVPUtf8ToUtf16(tmp_str_utf16, tmp_str_utf8);
+			val = ttstr(tmp_str_utf16.c_str());
+			r.AsObjectClosureNoAddRef().PropSet(TJS_MEMBERENSURE, TJS_W("hook_name"), 0, &val, nullptr);
+		}
 		if (result)
 		{
 			*result = r;
@@ -578,6 +590,34 @@ public:
 		return TJS_S_OK;
 	}
 
+	static tjs_error TJS_INTF_METHOD script__hook_add( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 3) return TJS_E_BADPARAMCOUNT;
+		std::string tmp_str1_utf8;
+		tjs_string tmp_str1_utf16;
+		tmp_str1_utf16 = ttstr(param[0]->AsStringNoAddRef()).c_str();
+		TVPUtf16ToUtf8(tmp_str1_utf8, tmp_str1_utf16);
+		self->last_error = mpv_hook_add(self->client, param[2]->AsInteger(), tmp_str1_utf8.c_str(), param[1]->AsInteger());
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		if (result)
+		{
+			*result = r;
+		}
+		return TJS_S_OK;
+	}
+
+	static tjs_error TJS_INTF_METHOD script__hook_continue( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
+	{
+		if(numparams < 1) return TJS_E_BADPARAMCOUNT;
+		self->last_error = mpv_hook_continue(self->client, param[0]->AsInteger());
+		tTJSVariant r = self->last_error < 0 ? tTJSVariant() : (tTJSVariant)1;
+		if (result)
+		{
+			*result = r;
+		}
+		return TJS_S_OK;
+	}
+
 	static tjs_error TJS_INTF_METHOD script_last_error( tTJSVariant *result, tjs_int numparams, tTJSVariant **param, KrMpv *self)
 	{
 		if (result)
@@ -640,8 +680,8 @@ NCB_REGISTER_CLASS(KrMpv)
 	// RawCallback("format_time", &Class::script_format_time, 0);
 	RawCallback("enable_messages", &Class::script_enable_messages, 0);
 	// RawCallback("get_wakeup_pipe", &Class::script_get_wakeup_pipe, 0);
-	// RawCallback("_hook_add", &Class::script__hook_add, 0);
-	// RawCallback("_hook_continue", &Class::script__hook_continue, 0);
+	RawCallback("_hook_add", &Class::script__hook_add, 0);
+	RawCallback("_hook_continue", &Class::script__hook_continue, 0);
 	// RawCallback("input_set_section_mouse_area", &Class::script_input_set_section_mouse_area, 0);
 	RawCallback("last_error", &Class::script_last_error, 0);
 	// RawCallback("_set_last_error", &Class::script__set_last_error, 0);

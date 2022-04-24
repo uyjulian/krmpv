@@ -40,7 +40,7 @@ DEPENDENCY_SOURCE_FILE_LIBASS := $(DEPENDENCY_SOURCE_DIRECTORY)/libass.tar.xz
 DEPENDENCY_SOURCE_FILE_MPV := $(DEPENDENCY_SOURCE_DIRECTORY)/mpv.tar.gz
 
 DEPENDENCY_SOURCE_URL_ICONV := https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz
-DEPENDENCY_SOURCE_URL_ZLIB := https://zlib.net/zlib-1.2.11.tar.xz
+DEPENDENCY_SOURCE_URL_ZLIB := https://downloads.sourceforge.net/project/libpng/zlib/1.2.11/zlib-1.2.11.tar.gz
 DEPENDENCY_SOURCE_URL_FFMPEG := https://ffmpeg.org/releases/ffmpeg-5.0.tar.xz
 DEPENDENCY_SOURCE_URL_FRIBIDI := https://github.com/fribidi/fribidi/releases/download/v1.0.11/fribidi-1.0.11.tar.xz
 DEPENDENCY_SOURCE_URL_BROTLI := https://github.com/google/brotli/archive/refs/tags/v1.0.9.tar.gz

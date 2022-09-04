@@ -37,7 +37,7 @@
           ]
         }
       },
-      "timeout-minutes" : 20,
+      "timeout-minutes" : 30,
       "env" : {
         "HOMEBREW_NO_ANALYTICS" : "1",
         "HOMEBREW_NO_AUTO_UPDATE" : "1",
@@ -86,7 +86,7 @@
           ]
         }
       },
-      "timeout-minutes" : 20,
+      "timeout-minutes" : 30,
       "env" : {
         "HOMEBREW_NO_ANALYTICS" : "1",
         "HOMEBREW_NO_AUTO_UPDATE" : "1",
@@ -129,7 +129,7 @@
         "build-win32-clang"
       ],
       "runs-on" : "ubuntu-20.04",
-      "timeout-minutes" : 20,
+      "timeout-minutes" : 5,
       "if" : "startsWith(github.ref, 'refs/tags/v')",
       "steps" : [
         {

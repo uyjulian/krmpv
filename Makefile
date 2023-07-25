@@ -48,11 +48,11 @@ DEPENDENCY_SOURCE_FILE_HARFBUZZ := $(DEPENDENCY_SOURCE_DIRECTORY)/harfbuzz.tar.x
 DEPENDENCY_SOURCE_FILE_LIBASS := $(DEPENDENCY_SOURCE_DIRECTORY)/libass.tar.xz
 DEPENDENCY_SOURCE_FILE_MPV := $(DEPENDENCY_SOURCE_DIRECTORY)/mpv.tar.gz
 
-DEPENDENCY_SOURCE_URL_GLSLANG = https://github.com/KhronosGroup/glslang/archive/refs/tags/11.11.0.tar.gz
+DEPENDENCY_SOURCE_URL_GLSLANG = https://github.com/KhronosGroup/glslang/archive/refs/tags/12.3.1.tar.gz
 DEPENDENCY_SOURCE_URL_SPIRV_CROSS := https://github.com/uyjulian/SPIRV-Cross/archive/refs/tags/staticlinking-1.3.224.1.tar.gz
-DEPENDENCY_SOURCE_URL_SPIRV_HEADERS := https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/sdk-1.3.224.1.tar.gz
-DEPENDENCY_SOURCE_URL_SPIRV_TOOLS := https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/v2022.2.tar.gz
-DEPENDENCY_SOURCE_URL_SHADERC := https://github.com/google/shaderc/archive/refs/tags/v2022.2.tar.gz
+DEPENDENCY_SOURCE_URL_SPIRV_HEADERS := https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/sdk-1.3.250.1.tar.gz
+DEPENDENCY_SOURCE_URL_SPIRV_TOOLS := https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/v2023.2.tar.gz
+DEPENDENCY_SOURCE_URL_SHADERC := https://github.com/google/shaderc/archive/refs/tags/v2023.5.tar.gz
 DEPENDENCY_SOURCE_URL_ICONV := https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz
 DEPENDENCY_SOURCE_URL_ZLIB := https://downloads.sourceforge.net/project/libpng/zlib/1.2.11/zlib-1.2.11.tar.gz
 DEPENDENCY_SOURCE_URL_FFMPEG := https://ffmpeg.org/releases/ffmpeg-5.0.tar.xz

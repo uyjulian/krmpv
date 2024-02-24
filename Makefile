@@ -307,6 +307,7 @@ $(DEPENDENCY_BUILD_DIRECTORY_FFMPEG): | $(DEPENDENCY_SOURCE_DIRECTORY_FFMPEG) $(
 	$(DEPENDENCY_SOURCE_DIRECTORY_FFMPEG)/configure \
 		--prefix="$(DEPENDENCY_OUTPUT_DIRECTORY)" \
 		--enable-optimizations \
+		--disable-asm \
 		--disable-avdevice \
 		--disable-cuda \
 		--disable-cuvid \

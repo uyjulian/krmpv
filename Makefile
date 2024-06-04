@@ -469,6 +469,7 @@ $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/libmpv.a: $(DEPENDENCY_OUTPUT_DIRECTORY)/lib/
 	mkdir -p $(DEPENDENCY_SOURCE_DIRECTORY_MPV) && \
 	cd $(DEPENDENCY_SOURCE_DIRECTORY_MPV) && \
 	sed -i -e 's/2.0.20/2.0.26/;s/bf971e98edc2414968a262c6aa6b88541a26c3cd248689c89f4c57370955ee7f/dcec3e179f9c33a66544f1b3d7d91f20f6373530510fa6a858cddb6bfdcde14b/' $(DEPENDENCY_SOURCE_DIRECTORY_MPV)/bootstrap.py && \
+	sed -i -e 's/#include <ksguid.h>/#include <mmreg.h>\n#include <ksguid.h>/' $(DEPENDENCY_SOURCE_DIRECTORY_MPV)/audio/out/ao_wasapi_utils.c && \
 	python3.11 $(DEPENDENCY_SOURCE_DIRECTORY_MPV)/bootstrap.py \
 	&& \
 	CC=$(CC) \

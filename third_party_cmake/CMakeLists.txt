@@ -65,6 +65,7 @@ include(ExternalProject)
 
 ExternalProject_Add(spirv-cross-build
     URL https://github.com/uyjulian/SPIRV-Cross/archive/refs/tags/staticlinking-1.3.224.1.tar.gz
+    URL_HASH SHA256=849402350d207bf1b45b6713367697ad5a6b8648c3d2e87c0831760451b0ee99
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
         "PKG_CONFIG_PATH=${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig"
@@ -94,6 +95,7 @@ list(APPEND THIRDPARTY_DEPENDS spirv-cross-build)
 
 ExternalProject_Add(spirv-tools-build
     URL https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/v2023.2.tar.gz
+    URL_HASH SHA256=7416cc8a98a10c32bacc36a39930b0c5b2a484963df5d68f388ed7ffee1faad3
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -103,6 +105,7 @@ ExternalProject_Get_Property(spirv-tools-build SOURCE_DIR)
 set(SHADERC_SPIRV_TOOLS_DIR ${SOURCE_DIR})
 ExternalProject_Add(spirv-headers-build
     URL https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/sdk-1.3.250.1.tar.gz
+    URL_HASH SHA256=d5f8c4b7906baf9c51aedbbb2dd942009e8658e3340c6e64699518666a03e043
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -112,6 +115,7 @@ ExternalProject_Get_Property(spirv-headers-build SOURCE_DIR)
 set(SHADERC_SPIRV_HEADERS_DIR ${SOURCE_DIR})
 ExternalProject_Add(glslang-build
     URL https://github.com/KhronosGroup/glslang/archive/refs/tags/12.3.1.tar.gz
+    URL_HASH SHA256=a57836a583b3044087ac51bb0d5d2d803ff84591d55f89087fc29ace42a8b9a8
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -122,6 +126,7 @@ set(SHADERC_GLSLANG_DIR ${SOURCE_DIR})
 ExternalProject_Add(shaderc-build
     DEPENDS spirv-tools-build spirv-headers-build glslang-build
     URL https://github.com/google/shaderc/archive/refs/tags/v2023.5.tar.gz
+    URL_HASH SHA256=6db6f91d480ab7ee32f51d8ed11460ddbd31cf9cebb00df09e46a2428dc553f0
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
         "PKG_CONFIG_PATH=${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig"
@@ -154,6 +159,7 @@ list(APPEND THIRDPARTY_DEPENDS shaderc-build)
 
 ExternalProject_Add(iconv-build
     URL https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz
+    URL_HASH SHA256=e6a1b1b589654277ee790cce3734f07876ac4ccfaecbee8afa0b649cf529cc04
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
         "PKG_CONFIG_PATH=${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig"
@@ -171,6 +177,7 @@ list(APPEND THIRDPARTY_DEPENDS iconv-build)
 
 ExternalProject_Add(zlib-build
     URL https://github.com/madler/zlib/archive/refs/tags/v1.2.12.tar.gz
+    URL_HASH SHA256=d8688496ea40fb61787500e863cc63c9afcbc524468cedeb478068924eb54932
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
         "PKG_CONFIG_PATH=${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig"
@@ -187,6 +194,7 @@ list(APPEND THIRDPARTY_DEPENDS zlib-build)
 
 ExternalProject_Add(ffmpeg-build
     URL https://ffmpeg.org/releases/ffmpeg-5.0.tar.xz
+    URL_HASH SHA256=51e919f7d205062c0fd4fae6243a84850391115104ccf1efc451733bc0ac7298
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND
         <SOURCE_DIR>/configure
@@ -231,6 +239,7 @@ list(APPEND THIRDPARTY_DEPENDS ffmpeg-build)
 
 ExternalProject_Add(fribidi-build
     URL https://github.com/fribidi/fribidi/releases/download/v1.0.11/fribidi-1.0.11.tar.xz
+    URL_HASH SHA256=30f93e9c63ee627d1a2cedcf59ac34d45bf30240982f99e44c6e015466b4e73d
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
         "PKG_CONFIG_PATH=${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig"
@@ -250,6 +259,7 @@ list(APPEND THIRDPARTY_DEPENDS fribidi-build)
 
 ExternalProject_Add(brotli-build
     URL https://github.com/google/brotli/archive/refs/tags/v1.0.9.tar.gz
+    URL_HASH SHA256=f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND 
         bash -c "cd <SOURCE_DIR> && NOCONFIGURE=1 ./bootstrap" &&
@@ -271,6 +281,7 @@ list(APPEND THIRDPARTY_DEPENDS brotli-build)
 
 ExternalProject_Add(freetype-build-nohb
     URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.0.tar.xz
+    URL_HASH SHA256=8bee39bd3968c4804b70614a0a3ad597299ad0e824bc8aad5ce8aaf48067bde7
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND 
         ${CMAKE_COMMAND} -E env
@@ -296,6 +307,7 @@ ExternalProject_Add(freetype-build-nohb
 ExternalProject_Add(harfbuzz-build
     DEPENDS freetype-build-nohb
     URL https://github.com/harfbuzz/harfbuzz/releases/download/3.1.2/harfbuzz-3.1.2.tar.xz
+    URL_HASH SHA256=4056b1541dd8bbd8ec29207fe30e568805c0705515632d7fec53a94399bc7945
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND 
         ${CMAKE_COMMAND} -E env
@@ -323,6 +335,7 @@ list(APPEND THIRDPARTY_DEPENDS harfbuzz-build)
 ExternalProject_Add(freetype-build
     DEPENDS harfbuzz-build brotli-build
     URL https://download.savannah.gnu.org/releases/freetype/freetype-2.11.0.tar.xz
+    URL_HASH SHA256=8bee39bd3968c4804b70614a0a3ad597299ad0e824bc8aad5ce8aaf48067bde7
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND 
         ${CMAKE_COMMAND} -E env
@@ -348,6 +361,7 @@ list(APPEND THIRDPARTY_DEPENDS freetype-build)
 ExternalProject_Add(libass-build
     DEPENDS fribidi-build freetype-build harfbuzz-build
     URL https://github.com/libass/libass/releases/download/0.15.2/libass-0.15.2.tar.xz
+    URL_HASH SHA256=1be2df9c4485a57d78bb18c0a8ed157bc87a5a8dd48c661961c625cb112832fd
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND 
         ${CMAKE_COMMAND} -E env
@@ -372,6 +386,7 @@ list(APPEND THIRDPARTY_DEPENDS libass-build)
 ExternalProject_Add(mpv-build
     DEPENDS spirv-cross-build shaderc-build iconv-build zlib-build ffmpeg-build libass-build
     URL https://github.com/mpv-player/mpv/archive/refs/tags/v0.34.1.tar.gz
+    URL_HASH SHA256=32ded8c13b6398310fa27767378193dc1db6d78b006b70dbcbd3123a1445e746
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     BUILD_IN_SOURCE TRUE
     PATCH_COMMAND 

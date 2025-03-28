@@ -7,8 +7,7 @@
 ##                                         ##
 #############################################
 
-BASESOURCES += main.cpp CharacterSet.cpp
-SOURCES += $(BASESOURCES)
+SOURCES += main.cpp CharacterSet.cpp
 PROJECT_BASENAME = krmpv
 
 RC_URL ?= https://github.com/uyjulian/$(PROJECT_BASENAME)

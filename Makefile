@@ -8,12 +8,13 @@
 #############################################
 
 SOURCES += main.cpp CharacterSet.cpp
+
 PROJECT_BASENAME = krmpv
 
 RC_URL ?= https://github.com/uyjulian/$(PROJECT_BASENAME)
-RC_FILEDESCRIPTION ?= libmpv video player plugin for TVP(KIRIKIRI) (2/Z)
-RC_LEGALCOPYRIGHT ?= Copyright (C) 2020-2022 Julian Uy; This product is licensed under the LGPL2.1 or later license.
+RC_DESC ?= libmpv video player plugin for TVP(KIRIKIRI) (2/Z)
 RC_PRODUCTNAME ?= libmpv video player plugin for TVP(KIRIKIRI) (2/Z)
+RC_LEGALCOPYRIGHT ?= Copyright (C) 2020-2022 Julian Uy; This product is licensed under the LGPL2.1 or later license.
 
 include external/ncbind/Rules.lib.make
 

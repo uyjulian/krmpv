@@ -98,6 +98,7 @@ ExternalProject_Add(spirv-cross-build
             -DSPIRV_CROSS_SHARED=ON
             -DSPIRV_CROSS_CLI=OFF
             -DSPIRV_CROSS_ENABLE_TESTS=OFF
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.12
     BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> && ${CMAKE_COMMAND} --build <BINARY_DIR> --target install && cp -f ${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig/spirv-cross-c-shared.pc ${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig/spirv-cross.pc
     BUILD_BYPRODUCTS ${DEPENDENCY_OUTPUT_DIRECTORY}/lib/libspirv-cross-c-shared.a
     INSTALL_COMMAND ""
@@ -162,6 +163,7 @@ ExternalProject_Add(shaderc-build
             -DSHADERC_SPIRV_HEADERS_DIR=${SHADERC_SPIRV_HEADERS_DIR}
             -DSHADERC_GLSLANG_DIR=${SHADERC_GLSLANG_DIR}
             -DSPIRV-Headers_SOURCE_DIR=${SHADERC_SPIRV_HEADERS_DIR}
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.12
     BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> && ${CMAKE_COMMAND} --build <BINARY_DIR> --target install
     BUILD_BYPRODUCTS ${DEPENDENCY_OUTPUT_DIRECTORY}/lib/libshaderc.a ${DEPENDENCY_OUTPUT_DIRECTORY}/lib/libshaderc_combined.a
     INSTALL_COMMAND ""

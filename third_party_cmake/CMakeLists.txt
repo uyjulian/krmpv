@@ -106,8 +106,8 @@ ExternalProject_Add(spirv-cross-build
 list(APPEND THIRDPARTY_DEPENDS spirv-cross-build)
 
 ExternalProject_Add(spirv-tools-build
-    URL https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/v2023.2.tar.gz
-    URL_HASH SHA256=7416cc8a98a10c32bacc36a39930b0c5b2a484963df5d68f388ed7ffee1faad3
+    URL https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/v2025.1.tar.gz
+    URL_HASH SHA256=6a9313fa68e061d463f616357cd24cdf1c3a27d906ea791d7ba67dd1b6666a40
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -116,8 +116,8 @@ ExternalProject_Add(spirv-tools-build
 ExternalProject_Get_Property(spirv-tools-build SOURCE_DIR)
 set(SHADERC_SPIRV_TOOLS_DIR ${SOURCE_DIR})
 ExternalProject_Add(spirv-headers-build
-    URL https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/sdk-1.3.250.1.tar.gz
-    URL_HASH SHA256=d5f8c4b7906baf9c51aedbbb2dd942009e8658e3340c6e64699518666a03e043
+    URL https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/vulkan-sdk-1.4.309.0.tar.gz
+    URL_HASH SHA256=a96f8b4f2dfb18f7432e5c523e220ab0075372a9509e0c25fbff21c76af0de7c
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -126,8 +126,8 @@ ExternalProject_Add(spirv-headers-build
 ExternalProject_Get_Property(spirv-headers-build SOURCE_DIR)
 set(SHADERC_SPIRV_HEADERS_DIR ${SOURCE_DIR})
 ExternalProject_Add(glslang-build
-    URL https://github.com/KhronosGroup/glslang/archive/refs/tags/12.3.1.tar.gz
-    URL_HASH SHA256=a57836a583b3044087ac51bb0d5d2d803ff84591d55f89087fc29ace42a8b9a8
+    URL https://github.com/KhronosGroup/glslang/archive/refs/tags/15.3.0.tar.gz
+    URL_HASH SHA256=c6c21fe1873c37e639a6a9ac72d857ab63a5be6893a589f34e09a6c757174201
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -137,8 +137,8 @@ ExternalProject_Get_Property(glslang-build SOURCE_DIR)
 set(SHADERC_GLSLANG_DIR ${SOURCE_DIR})
 ExternalProject_Add(shaderc-build
     DEPENDS spirv-tools-build spirv-headers-build glslang-build
-    URL https://github.com/google/shaderc/archive/refs/tags/v2023.5.tar.gz
-    URL_HASH SHA256=6db6f91d480ab7ee32f51d8ed11460ddbd31cf9cebb00df09e46a2428dc553f0
+    URL https://github.com/google/shaderc/archive/refs/tags/v2025.2.tar.gz
+    URL_HASH SHA256=3fddc13bbb87411c6f7b8f447e87c1637933450087e70fc21da650041f4e0132
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
         "PKG_CONFIG_PATH=${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig"
@@ -171,8 +171,8 @@ ExternalProject_Add(shaderc-build
 list(APPEND THIRDPARTY_DEPENDS shaderc-build)
 
 ExternalProject_Add(iconv-build
-    URL https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz
-    URL_HASH SHA256=e6a1b1b589654277ee790cce3734f07876ac4ccfaecbee8afa0b649cf529cc04
+    URL https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.18.tar.gz
+    URL_HASH SHA256=3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env
         "PKG_CONFIG_PATH=${DEPENDENCY_OUTPUT_DIRECTORY}/lib/pkgconfig"
